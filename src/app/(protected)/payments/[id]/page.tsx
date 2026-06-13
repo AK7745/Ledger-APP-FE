@@ -7,9 +7,11 @@ import { api } from '@/lib/client';
 import type { Payment } from '@/lib/types';
 import { money, formatDate, STATUS_BADGE } from '@/lib/format';
 import { Button, Card, LinkButton } from '@/components/ui';
+import { useDialog } from '@/components/dialog';
 
 export default function PaymentDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const dialog = useDialog();
   const [p, setP] = useState<Payment | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -49,13 +51,19 @@ export default function PaymentDetailPage() {
           {p.status === 'PENDING' && <Button onClick={() => act(() => api.post(`payments/${id}/clear`))} disabled={busy}>Mark cleared</Button>}
           {(p.status === 'PENDING' || p.status === 'CLEARED') && (
             <Button variant="danger" disabled={busy}
-              onClick={() => { const r = prompt('Reason cheque bounced?'); if (r) act(() => api.post(`payments/${id}/bounce`, { reason: r })); }}>
+              onClick={async () => {
+                const r = await dialog.prompt({ title: 'Cheque bounced', label: 'Reason', required: true, confirmText: 'Mark bounced' });
+                if (r) act(() => api.post(`payments/${id}/bounce`, { reason: r }));
+              }}>
               Bounce
             </Button>
           )}
           {(p.status === 'PENDING' || p.status === 'CLEARED') && (
             <Button variant="danger" disabled={busy}
-              onClick={() => { const r = prompt('Reason for voiding?'); if (r) act(() => api.post(`payments/${id}/void`, { reason: r })); }}>
+              onClick={async () => {
+                const r = await dialog.prompt({ title: 'Void payment', label: 'Reason', required: true, confirmText: 'Void' });
+                if (r) act(() => api.post(`payments/${id}/void`, { reason: r }));
+              }}>
               Void
             </Button>
           )}

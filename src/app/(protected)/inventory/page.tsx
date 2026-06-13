@@ -4,11 +4,17 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/client';
 import type { Item } from '@/lib/types';
-import { PageHeader } from '@/components/ui';
+import { Button, ErrorText, Field, Input, PageHeader, Textarea } from '@/components/ui';
+import { Modal } from '@/components/dialog';
 
 export default function InventoryPage() {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
+  const [target, setTarget] = useState<Item | null>(null);
+  const [qty, setQty] = useState('');
+  const [note, setNote] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -17,14 +23,27 @@ export default function InventoryPage() {
   }, []);
   useEffect(() => { load(); }, [load]);
 
-  async function adjust(id: string) {
-    const raw = prompt('Adjust stock by (use a negative number to remove):');
-    if (raw === null) return;
-    const qty = Number(raw);
-    if (!qty || isNaN(qty)) return alert('Enter a non-zero number');
-    const note = prompt('Reason (optional):') ?? undefined;
-    await api.post(`inventory/${id}/adjust`, { qty, note });
-    load();
+  function openAdjust(item: Item) {
+    setTarget(item);
+    setQty('');
+    setNote('');
+    setError(null);
+  }
+
+  async function submitAdjust() {
+    const n = Number(qty);
+    if (!n || isNaN(n)) { setError('Enter a non-zero number (negative removes stock)'); return; }
+    setSaving(true);
+    setError(null);
+    try {
+      await api.post(`inventory/${target!.id}/adjust`, { qty: n, note: note || undefined });
+      setTarget(null);
+      load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Adjust failed');
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -57,7 +76,7 @@ export default function InventoryPage() {
                     {Number(it.stockOnHand)}
                   </td>
                   <td className="px-4 py-3 text-right whitespace-nowrap">
-                    <button onClick={() => adjust(it.id)} className="text-gray-700 underline">Adjust</button>
+                    <button onClick={() => openAdjust(it)} className="text-gray-700 underline">Adjust</button>
                     <Link href={`/inventory/${it.id}`} className="ml-4 text-gray-700 underline">History</Link>
                   </td>
                 </tr>
@@ -66,6 +85,25 @@ export default function InventoryPage() {
           </tbody>
         </table>
       </div>
+
+      <Modal open={!!target} onClose={() => setTarget(null)} title={`Adjust stock — ${target?.name ?? ''}`}>
+        <p className="text-sm text-gray-500">
+          Current on hand: <span className="font-medium text-gray-900">{Number(target?.stockOnHand ?? 0)}</span> {target?.unit}
+        </p>
+        <div className="mt-3 space-y-3">
+          <Field label="Adjust by" hint="positive adds, negative removes">
+            <Input type="number" step="0.001" value={qty} onChange={(e) => setQty(e.target.value)} placeholder="e.g. -5" />
+          </Field>
+          <Field label="Reason (optional)">
+            <Textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder="breakage, recount, …" />
+          </Field>
+          <ErrorText>{error}</ErrorText>
+          <div className="flex justify-end gap-2">
+            <Button variant="secondary" onClick={() => setTarget(null)}>Cancel</Button>
+            <Button onClick={submitAdjust} disabled={saving}>{saving ? 'Saving…' : 'Apply'}</Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

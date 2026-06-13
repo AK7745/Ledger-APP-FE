@@ -7,10 +7,12 @@ import { api } from '@/lib/client';
 import type { Bill, CreditDebitNote } from '@/lib/types';
 import { money, formatDate, STATUS_BADGE } from '@/lib/format';
 import { Button, Card, LinkButton } from '@/components/ui';
+import { useDialog } from '@/components/dialog';
 
 export default function BillDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const dialog = useDialog();
   const [b, setB] = useState<Bill | null>(null);
   const [notes, setNotes] = useState<CreditDebitNote[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -33,16 +35,33 @@ export default function BillDetailPage() {
     finally { setBusy(false); }
   }
   async function finalize() {
-    if (!confirm('Finalize this bill? It will be locked and assigned a number.')) return;
+    const ok = await dialog.confirm({
+      title: 'Finalize bill',
+      message: 'It will be locked and assigned a number.',
+      confirmText: 'Finalize',
+    });
+    if (!ok) return;
     await act(() => api.post(`bills/${id}/finalize`));
   }
   async function voidBill() {
-    const reason = prompt('Reason for voiding this bill?');
+    const reason = await dialog.prompt({
+      title: 'Void bill',
+      label: 'Reason',
+      multiline: true,
+      required: true,
+      confirmText: 'Void',
+    });
     if (!reason) return;
     await act(() => api.post(`bills/${id}/void`, { reason }));
   }
   async function remove() {
-    if (!confirm('Delete this draft bill?')) return;
+    const ok = await dialog.confirm({
+      title: 'Delete draft bill',
+      message: 'This cannot be undone.',
+      confirmText: 'Delete',
+      danger: true,
+    });
+    if (!ok) return;
     setBusy(true);
     try { await api.del(`bills/${id}`); router.push('/bills'); }
     catch (e) { setError(e instanceof Error ? e.message : 'Delete failed'); setBusy(false); }

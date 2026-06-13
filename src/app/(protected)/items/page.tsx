@@ -5,8 +5,10 @@ import Link from 'next/link';
 import { api } from '@/lib/client';
 import type { Item } from '@/lib/types';
 import { LinkButton, PageHeader } from '@/components/ui';
+import { useDialog } from '@/components/dialog';
 
 export default function ItemsPage() {
+  const dialog = useDialog();
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -21,7 +23,13 @@ export default function ItemsPage() {
   }, [load]);
 
   async function archive(id: string) {
-    if (!confirm('Archive this item? Past invoices keep their copy.')) return;
+    const ok = await dialog.confirm({
+      title: 'Archive item',
+      message: 'Past invoices keep their copy.',
+      confirmText: 'Archive',
+      danger: true,
+    });
+    if (!ok) return;
     await api.del(`items/${id}`);
     load();
   }

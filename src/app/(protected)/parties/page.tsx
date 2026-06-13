@@ -4,7 +4,8 @@ import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/client';
 import type { Party, PartyType } from '@/lib/types';
-import { Button, LinkButton, PageHeader } from '@/components/ui';
+import { LinkButton, PageHeader } from '@/components/ui';
+import { useDialog } from '@/components/dialog';
 
 const TABS: { label: string; value?: PartyType }[] = [
   { label: 'All' },
@@ -19,6 +20,7 @@ const typeBadge: Record<PartyType, string> = {
 };
 
 export default function PartiesPage() {
+  const dialog = useDialog();
   const [parties, setParties] = useState<Party[]>([]);
   const [filter, setFilter] = useState<PartyType | undefined>(undefined);
   const [loading, setLoading] = useState(true);
@@ -35,7 +37,13 @@ export default function PartiesPage() {
   }, [load]);
 
   async function archive(id: string) {
-    if (!confirm('Archive this party? It stays in records but is hidden from lists.')) return;
+    const ok = await dialog.confirm({
+      title: 'Archive party',
+      message: 'It stays in records but is hidden from lists.',
+      confirmText: 'Archive',
+      danger: true,
+    });
+    if (!ok) return;
     await api.del(`parties/${id}`);
     load();
   }

@@ -6,11 +6,13 @@ import Link from 'next/link';
 import { api } from '@/lib/client';
 import type { CreditDebitNote } from '@/lib/types';
 import { money, formatDate, STATUS_BADGE } from '@/lib/format';
-import { Button, Card, LinkButton } from '@/components/ui';
+import { Button, Card } from '@/components/ui';
+import { useDialog } from '@/components/dialog';
 
 export default function NoteDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const dialog = useDialog();
   const [n, setN] = useState<CreditDebitNote | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -27,16 +29,33 @@ export default function NoteDetailPage() {
     finally { setBusy(false); }
   }
   async function finalize() {
-    if (!confirm('Finalize this note? It will reduce the linked document and adjust stock.')) return;
+    const ok = await dialog.confirm({
+      title: 'Finalize note',
+      message: 'It will reduce the linked document and adjust stock.',
+      confirmText: 'Finalize',
+    });
+    if (!ok) return;
     await act(() => api.post(`notes/${id}/finalize`));
   }
   async function voidNote() {
-    const reason = prompt('Reason for voiding?');
+    const reason = await dialog.prompt({
+      title: 'Void note',
+      label: 'Reason',
+      multiline: true,
+      required: true,
+      confirmText: 'Void',
+    });
     if (!reason) return;
     await act(() => api.post(`notes/${id}/void`, { reason }));
   }
   async function remove() {
-    if (!confirm('Delete this draft note?')) return;
+    const ok = await dialog.confirm({
+      title: 'Delete draft note',
+      message: 'This cannot be undone.',
+      confirmText: 'Delete',
+      danger: true,
+    });
+    if (!ok) return;
     setBusy(true);
     try { await api.del(`notes/${id}`); router.back(); }
     catch (e) { setError(e instanceof Error ? e.message : 'Delete failed'); setBusy(false); }
