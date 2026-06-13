@@ -62,8 +62,8 @@ export default function PartiesPage() {
             onClick={() => setFilter(t.value)}
             className={`rounded-md px-3 py-1.5 text-sm ${
               filter === t.value
-                ? 'bg-gray-900 text-white'
-                : 'bg-white text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50'
+                ? 'bg-accent text-white'
+                : 'bg-surface text-muted ring-1 ring-line hover:bg-hover'
             }`}
           >
             {t.label}
@@ -71,9 +71,9 @@ export default function PartiesPage() {
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200">
+      <div className="overflow-hidden rounded-xl bg-surface shadow-sm ring-1 ring-line">
         <table className="w-full text-sm">
-          <thead className="border-b border-gray-200 text-left text-gray-500">
+          <thead className="border-b border-line text-left text-muted">
             <tr>
               <th className="px-4 py-3 font-medium">Name</th>
               <th className="px-4 py-3 font-medium">Type</th>
@@ -83,26 +83,26 @@ export default function PartiesPage() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-400">Loading…</td></tr>
+              <tr><td colSpan={4} className="px-4 py-8 text-center text-muted">Loading…</td></tr>
             ) : parties.length === 0 ? (
-              <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-400">No parties yet.</td></tr>
+              <tr><td colSpan={4} className="px-4 py-8 text-center text-muted">No parties yet.</td></tr>
             ) : (
               parties.map((p) => (
-                <tr key={p.id} className="border-b border-gray-100 last:border-0">
-                  <td className="px-4 py-3 font-medium text-gray-900">{p.name}</td>
+                <tr key={p.id} className="border-b border-line last:border-0">
+                  <td className="px-4 py-3 font-medium text-fg">{p.name}</td>
                   <td className="px-4 py-3">
                     <span className={`rounded px-2 py-0.5 text-xs font-medium ${typeBadge[p.type]}`}>
                       {p.type}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-gray-500">
+                  <td className="px-4 py-3 text-muted">
                     {p.phone || p.email || '—'}
                   </td>
                   <td className="px-4 py-3 text-right whitespace-nowrap">
-                    <Link href={`/parties/${p.id}/statement`} className="text-gray-700 underline">
+                    <Link href={`/parties/${p.id}/statement`} className="text-fg underline">
                       Statement
                     </Link>
-                    <Link href={`/parties/${p.id}`} className="ml-4 text-gray-700 underline">
+                    <Link href={`/parties/${p.id}`} className="ml-4 text-fg underline">
                       Edit
                     </Link>
                     <button

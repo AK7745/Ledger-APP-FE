@@ -84,7 +84,7 @@ export default function InvoiceDetailPage() {
   }
 
   if (error && !inv) return <p className="text-sm text-red-600">{error}</p>;
-  if (!inv) return <p className="text-gray-400">Loading…</p>;
+  if (!inv) return <p className="text-muted">Loading…</p>;
 
   const isDraft = inv.status === 'DRAFT';
   const canVoid = ['FINALIZED', 'PARTIAL', 'PAID'].includes(inv.status);
@@ -93,7 +93,7 @@ export default function InvoiceDetailPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl font-semibold text-gray-900">
+          <h1 className="text-xl font-semibold text-fg">
             {inv.number ?? 'Draft invoice'}
           </h1>
           <span className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[inv.status]}`}>
@@ -122,16 +122,16 @@ export default function InvoiceDetailPage() {
       <Card>
         <div className="grid grid-cols-3 gap-4 text-sm">
           <div>
-            <div className="text-gray-500">Customer</div>
-            <div className="font-medium text-gray-900">{inv.party?.name ?? '—'}</div>
+            <div className="text-muted">Customer</div>
+            <div className="font-medium text-fg">{inv.party?.name ?? '—'}</div>
           </div>
           <div>
-            <div className="text-gray-500">Issue date</div>
-            <div className="text-gray-900">{formatDate(inv.issueDate)}</div>
+            <div className="text-muted">Issue date</div>
+            <div className="text-fg">{formatDate(inv.issueDate)}</div>
           </div>
           <div>
-            <div className="text-gray-500">Due date</div>
-            <div className="text-gray-900">{formatDate(inv.dueDate)}</div>
+            <div className="text-muted">Due date</div>
+            <div className="text-fg">{formatDate(inv.dueDate)}</div>
           </div>
         </div>
         {inv.voidReason && (
@@ -141,7 +141,7 @@ export default function InvoiceDetailPage() {
 
       <Card>
         <table className="w-full text-sm">
-          <thead className="text-left text-gray-500">
+          <thead className="text-left text-muted">
             <tr>
               <th className="pb-2 font-medium">Description</th>
               <th className="pb-2 font-medium text-right">Qty</th>
@@ -152,33 +152,33 @@ export default function InvoiceDetailPage() {
           </thead>
           <tbody>
             {inv.lines.map((l) => (
-              <tr key={l.id} className="border-t border-gray-100">
-                <td className="py-2 text-gray-900">{l.description}</td>
+              <tr key={l.id} className="border-t border-line">
+                <td className="py-2 text-fg">{l.description}</td>
                 <td className="py-2 text-right tabular-nums">{Number(l.qty)}</td>
                 <td className="py-2 text-right tabular-nums">{money(l.unitPrice)}</td>
                 <td className="py-2 text-right tabular-nums">{money(l.discount)}</td>
-                <td className="py-2 text-right tabular-nums text-gray-900">{money(l.lineTotal)}</td>
+                <td className="py-2 text-right tabular-nums text-fg">{money(l.lineTotal)}</td>
               </tr>
             ))}
           </tbody>
         </table>
 
         <div className="mt-4 ml-auto w-64 space-y-2 text-sm">
-          <div className="flex justify-between text-gray-600">
+          <div className="flex justify-between text-muted">
             <span>Subtotal</span><span className="tabular-nums">{money(inv.subtotal)}</span>
           </div>
-          <div className="flex justify-between text-gray-600">
+          <div className="flex justify-between text-muted">
             <span>Discount</span><span className="tabular-nums">{money(inv.discountTotal)}</span>
           </div>
-          <div className="flex justify-between border-t border-gray-200 pt-2 text-base font-semibold text-gray-900">
+          <div className="flex justify-between border-t border-line pt-2 text-base font-semibold text-fg">
             <span>Grand total</span><span className="tabular-nums">{money(inv.grandTotal)}</span>
           </div>
           {!isDraft && (
             <>
-              <div className="flex justify-between text-gray-600">
+              <div className="flex justify-between text-muted">
                 <span>Paid</span><span className="tabular-nums">{money(inv.amountPaid)}</span>
               </div>
-              <div className="flex justify-between font-medium text-gray-900">
+              <div className="flex justify-between font-medium text-fg">
                 <span>Balance due</span><span className="tabular-nums">{money(inv.balance)}</span>
               </div>
             </>
@@ -188,16 +188,16 @@ export default function InvoiceDetailPage() {
 
       {notes.length > 0 && (
         <Card>
-          <div className="mb-2 text-sm font-medium text-gray-700">Credit notes</div>
+          <div className="mb-2 text-sm font-medium text-fg">Credit notes</div>
           <table className="w-full text-sm">
             <tbody>
               {notes.map((n) => (
-                <tr key={n.id} className="border-t border-gray-100 first:border-0">
+                <tr key={n.id} className="border-t border-line first:border-0">
                   <td className="py-2">
-                    <Link href={`/notes/${n.id}`} className="text-gray-700 underline">{n.number ?? '(draft)'}</Link>
+                    <Link href={`/notes/${n.id}`} className="text-fg underline">{n.number ?? '(draft)'}</Link>
                   </td>
                   <td className="py-2"><span className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[n.status]}`}>{n.status}</span></td>
-                  <td className="py-2 text-right tabular-nums text-gray-900">{money(n.grandTotal)}</td>
+                  <td className="py-2 text-right tabular-nums text-fg">{money(n.grandTotal)}</td>
                 </tr>
               ))}
             </tbody>
@@ -207,8 +207,8 @@ export default function InvoiceDetailPage() {
 
       {inv.notes && (
         <Card>
-          <div className="text-sm text-gray-500">Notes</div>
-          <p className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">{inv.notes}</p>
+          <div className="text-sm text-muted">Notes</div>
+          <p className="mt-1 text-sm text-fg whitespace-pre-wrap">{inv.notes}</p>
         </Card>
       )}
     </div>

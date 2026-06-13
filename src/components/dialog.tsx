@@ -41,8 +41,8 @@ export function Modal({
         if (e.target === e.currentTarget) onClose?.();
       }}
     >
-      <div className={`w-full ${maxWidth} rounded-xl bg-white p-6 shadow-xl ring-1 ring-gray-200`}>
-        {title && <h2 className="text-base font-semibold text-gray-900">{title}</h2>}
+      <div className={`w-full ${maxWidth} rounded-xl bg-surface p-6 shadow-xl ring-1 ring-line`}>
+        {title && <h2 className="text-base font-semibold text-fg">{title}</h2>}
         <div className={title ? 'mt-3' : ''}>{children}</div>
       </div>
     </div>
@@ -138,13 +138,13 @@ export function DialogProvider({ children }: { children: ReactNode }) {
       {children}
       <Modal open={!!state} onClose={cancel} title={state?.opts.title}>
         {state?.kind === 'confirm' && (
-          <p className="text-sm text-gray-600">{state.opts.message}</p>
+          <p className="text-sm text-muted">{state.opts.message}</p>
         )}
         {state?.kind === 'prompt' && (
           <div>
-            {state.opts.message && <p className="text-sm text-gray-600">{state.opts.message}</p>}
+            {state.opts.message && <p className="text-sm text-muted">{state.opts.message}</p>}
             {state.opts.label && (
-              <label className="mt-2 block text-sm font-medium text-gray-700">{state.opts.label}</label>
+              <label className="mt-2 block text-sm font-medium text-fg">{state.opts.label}</label>
             )}
             {state.opts.multiline ? (
               <textarea
@@ -154,7 +154,7 @@ export function DialogProvider({ children }: { children: ReactNode }) {
                 placeholder={state.opts.placeholder}
                 onChange={(e) => setValue(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) accept(); }}
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none"
+                className="mt-1 w-full rounded-md border border-line px-3 py-2 text-sm text-fg focus:border-accent focus:outline-none"
               />
             ) : (
               <input
@@ -164,7 +164,7 @@ export function DialogProvider({ children }: { children: ReactNode }) {
                 placeholder={state.opts.placeholder}
                 onChange={(e) => setValue(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') accept(); }}
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none"
+                className="mt-1 w-full rounded-md border border-line px-3 py-2 text-sm text-fg focus:border-accent focus:outline-none"
               />
             )}
           </div>
@@ -172,14 +172,14 @@ export function DialogProvider({ children }: { children: ReactNode }) {
         <div className="mt-5 flex justify-end gap-2">
           <button
             onClick={cancel}
-            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+            className="rounded-md border border-line px-4 py-2 text-sm font-medium text-fg hover:bg-hover"
           >
             {state?.kind === 'confirm' ? state.opts.cancelText ?? 'Cancel' : 'Cancel'}
           </button>
           <button
             onClick={accept}
             className={`rounded-md px-4 py-2 text-sm font-medium text-white ${
-              danger ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-900 hover:bg-gray-800'
+              danger ? 'bg-red-600 hover:bg-red-700' : 'bg-accent hover:bg-accent-hover'
             }`}
           >
             {okText}

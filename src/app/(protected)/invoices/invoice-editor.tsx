@@ -137,7 +137,7 @@ export default function InvoiceEditor({ invoice }: { invoice?: Invoice }) {
 
       <Card>
         <table className="w-full text-sm">
-          <thead className="text-left text-gray-500">
+          <thead className="text-left text-muted">
             <tr>
               <th className="pb-2 font-medium">Item / description</th>
               <th className="pb-2 font-medium w-20 text-right">Qty</th>
@@ -149,7 +149,7 @@ export default function InvoiceEditor({ invoice }: { invoice?: Invoice }) {
           </thead>
           <tbody>
             {lines.map((l) => (
-              <tr key={l.key} className="border-t border-gray-100">
+              <tr key={l.key} className="border-t border-line">
                 <td className="py-2 pr-2">
                   <Select
                     value={l.itemId}
@@ -185,14 +185,14 @@ export default function InvoiceEditor({ invoice }: { invoice?: Invoice }) {
                     onChange={(e) => updateLine(l.key, { discount: e.target.value })}
                     className="mt-0 text-right" />
                 </td>
-                <td className="py-2 pr-2 text-right align-top tabular-nums text-gray-900">
+                <td className="py-2 pr-2 text-right align-top tabular-nums text-fg">
                   {money(lineTotal(l))}
                 </td>
                 <td className="py-2 align-top text-right">
                   <button
                     type="button"
                     onClick={() => setLines((ls) => ls.filter((x) => x.key !== l.key))}
-                    className="text-gray-400 hover:text-red-600"
+                    className="text-muted hover:text-red-600"
                     title="Remove line"
                   >
                     ✕
@@ -210,7 +210,7 @@ export default function InvoiceEditor({ invoice }: { invoice?: Invoice }) {
               { key: nextKey(), itemId: '', description: '', qty: '1', unitPrice: '0', discount: '0' },
             ])
           }
-          className="mt-3 text-sm font-medium text-gray-700 hover:underline"
+          className="mt-3 text-sm font-medium text-fg hover:underline"
         >
           + Add line
         </button>
@@ -225,11 +225,11 @@ export default function InvoiceEditor({ invoice }: { invoice?: Invoice }) {
         <div className="ml-auto w-72">
           <Card>
             <dl className="space-y-2 text-sm">
-              <div className="flex justify-between text-gray-600">
+              <div className="flex justify-between text-muted">
                 <dt>Subtotal</dt>
                 <dd className="tabular-nums">{money(subtotal)}</dd>
               </div>
-              <div className="flex items-center justify-between text-gray-600">
+              <div className="flex items-center justify-between text-muted">
                 <dt>Invoice discount</dt>
                 <dd>
                   <Input type="number" min="0" step="0.01" value={invoiceDiscount}
@@ -237,7 +237,7 @@ export default function InvoiceEditor({ invoice }: { invoice?: Invoice }) {
                     className="mt-0 w-28 text-right" />
                 </dd>
               </div>
-              <div className="flex justify-between border-t border-gray-200 pt-2 text-base font-semibold text-gray-900">
+              <div className="flex justify-between border-t border-line pt-2 text-base font-semibold text-fg">
                 <dt>Grand total</dt>
                 <dd className="tabular-nums">{money(grandTotal)}</dd>
               </div>
@@ -256,7 +256,7 @@ export default function InvoiceEditor({ invoice }: { invoice?: Invoice }) {
           Cancel
         </LinkButton>
       </div>
-      <p className="text-xs text-gray-400">
+      <p className="text-xs text-muted">
         Totals are recalculated on the server when you save. Finalize the invoice from its detail page to lock it and assign a number.
       </p>
     </div>

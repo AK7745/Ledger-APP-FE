@@ -48,26 +48,26 @@ export default function DashboardPage() {
       />
 
       {loading ? (
-        <p className="text-gray-400">Loading…</p>
+        <p className="text-muted">Loading…</p>
       ) : (
         <>
           <div className="grid grid-cols-3 gap-4">
             <Card>
-              <div className="text-xs uppercase tracking-wide text-gray-500">Owed to you</div>
+              <div className="text-xs uppercase tracking-wide text-muted">Owed to you</div>
               <div className="mt-1 text-2xl font-bold tabular-nums text-green-700">{money(receivable)}</div>
-              <div className="text-xs text-gray-400">across {invoices.filter((i) => OPEN.includes(i.status)).length} open invoices</div>
+              <div className="text-xs text-muted">across {invoices.filter((i) => OPEN.includes(i.status)).length} open invoices</div>
             </Card>
             <Card>
-              <div className="text-xs uppercase tracking-wide text-gray-500">You owe</div>
+              <div className="text-xs uppercase tracking-wide text-muted">You owe</div>
               <div className="mt-1 text-2xl font-bold tabular-nums text-red-700">{money(payable)}</div>
-              <div className="text-xs text-gray-400">across {bills.filter((b) => OPEN.includes(b.status)).length} open bills</div>
+              <div className="text-xs text-muted">across {bills.filter((b) => OPEN.includes(b.status)).length} open bills</div>
             </Card>
             <Card>
-              <div className="text-xs uppercase tracking-wide text-gray-500">Net position</div>
+              <div className="text-xs uppercase tracking-wide text-muted">Net position</div>
               <div className={`mt-1 text-2xl font-bold tabular-nums ${net >= 0 ? 'text-green-700' : 'text-red-700'}`}>
                 {money(Math.abs(net))}
               </div>
-              <div className="text-xs text-gray-400">{net >= 0 ? 'in your favour' : 'you owe overall'}</div>
+              <div className="text-xs text-muted">{net >= 0 ? 'in your favour' : 'you owe overall'}</div>
             </Card>
           </div>
 
@@ -79,7 +79,7 @@ export default function DashboardPage() {
                 </span>
               )}
               {drafts > 0 && (
-                <span className="rounded-md bg-gray-100 px-3 py-1.5 text-gray-600">
+                <span className="rounded-md bg-hover px-3 py-1.5 text-muted">
                   {drafts} draft invoice{drafts > 1 ? 's' : ''}
                 </span>
               )}
@@ -87,10 +87,10 @@ export default function DashboardPage() {
           )}
 
           <div>
-            <h2 className="mb-2 text-sm font-medium text-gray-700">Recent invoices</h2>
-            <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200">
+            <h2 className="mb-2 text-sm font-medium text-fg">Recent invoices</h2>
+            <div className="overflow-hidden rounded-xl bg-surface shadow-sm ring-1 ring-line">
               <table className="w-full text-sm">
-                <thead className="border-b border-gray-200 text-left text-gray-500">
+                <thead className="border-b border-line text-left text-muted">
                   <tr>
                     <th className="px-4 py-3 font-medium">Number</th>
                     <th className="px-4 py-3 font-medium">Customer</th>
@@ -102,16 +102,16 @@ export default function DashboardPage() {
                 <tbody>
                   {invoices.slice(0, 6).map((inv) => (
                     <tr key={inv.id} onClick={() => router.push(`/invoices/${inv.id}`)}
-                      className="cursor-pointer border-b border-gray-100 last:border-0 hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium text-gray-900">{inv.number ?? 'Draft'}</td>
-                      <td className="px-4 py-3 text-gray-700">{inv.party?.name ?? '—'}</td>
-                      <td className="px-4 py-3 text-gray-500">{formatDate(inv.issueDate)}</td>
+                      className="cursor-pointer border-b border-line last:border-0 hover:bg-hover">
+                      <td className="px-4 py-3 font-medium text-fg">{inv.number ?? 'Draft'}</td>
+                      <td className="px-4 py-3 text-fg">{inv.party?.name ?? '—'}</td>
+                      <td className="px-4 py-3 text-muted">{formatDate(inv.issueDate)}</td>
                       <td className="px-4 py-3"><span className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[inv.status]}`}>{inv.status}</span></td>
-                      <td className="px-4 py-3 text-right tabular-nums text-gray-900">{money(inv.balance)}</td>
+                      <td className="px-4 py-3 text-right tabular-nums text-fg">{money(inv.balance)}</td>
                     </tr>
                   ))}
                   {invoices.length === 0 && (
-                    <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">No invoices yet.</td></tr>
+                    <tr><td colSpan={5} className="px-4 py-8 text-center text-muted">No invoices yet.</td></tr>
                   )}
                 </tbody>
               </table>

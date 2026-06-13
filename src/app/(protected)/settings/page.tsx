@@ -54,7 +54,7 @@ export default function SettingsPage() {
   return (
     <div className="max-w-2xl">
       <PageHeader title="Business profile" />
-      <p className="mb-4 text-sm text-gray-500">
+      <p className="mb-4 text-sm text-muted">
         These details appear on your invoices, receipts, and statements.
       </p>
       <Card>

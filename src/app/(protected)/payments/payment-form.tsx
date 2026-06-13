@@ -135,18 +135,18 @@ export default function PaymentForm({
 
       <Card>
         <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-sm font-medium text-gray-700">{t.apply} (oldest first)</h2>
+          <h2 className="text-sm font-medium text-fg">{t.apply} (oldest first)</h2>
           <span className={`text-sm ${Math.abs(remaining) > 0.001 ? 'text-amber-600' : 'text-green-600'}`}>
             Allocated {money(allocated)} / {money(num(amount))}{Math.abs(remaining) > 0.001 && ` — ${money(remaining)} left`}
           </span>
         </div>
         {!partyId ? (
-          <p className="py-4 text-center text-sm text-gray-400">Select a {t.party.toLowerCase()} to see open {t.noun}.</p>
+          <p className="py-4 text-center text-sm text-muted">Select a {t.party.toLowerCase()} to see open {t.noun}.</p>
         ) : openDocs.length === 0 ? (
-          <p className="py-4 text-center text-sm text-gray-400">No open {t.noun} for this {t.party.toLowerCase()}.</p>
+          <p className="py-4 text-center text-sm text-muted">No open {t.noun} for this {t.party.toLowerCase()}.</p>
         ) : (
           <table className="w-full text-sm">
-            <thead className="text-left text-gray-500">
+            <thead className="text-left text-muted">
               <tr>
                 <th className="pb-2 font-medium">{out ? 'Bill' : 'Invoice'}</th>
                 <th className="pb-2 font-medium">Date</th>
@@ -156,10 +156,10 @@ export default function PaymentForm({
             </thead>
             <tbody>
               {openDocs.map((d) => (
-                <tr key={d.id} className="border-t border-gray-100">
-                  <td className="py-2 font-medium text-gray-900">{d.number}</td>
-                  <td className="py-2 text-gray-500">{formatDate(d.issueDate)}</td>
-                  <td className="py-2 text-right tabular-nums text-gray-700">{money(d.balance)}</td>
+                <tr key={d.id} className="border-t border-line">
+                  <td className="py-2 font-medium text-fg">{d.number}</td>
+                  <td className="py-2 text-muted">{formatDate(d.issueDate)}</td>
+                  <td className="py-2 text-right tabular-nums text-fg">{money(d.balance)}</td>
                   <td className="py-2 text-right">
                     <Input type="number" min="0" step="0.01" value={alloc[d.id] ?? '0'}
                       onChange={(e) => setAlloc({ ...alloc, [d.id]: e.target.value })} className="mt-0 text-right" />

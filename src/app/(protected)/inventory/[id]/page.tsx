@@ -30,13 +30,13 @@ export default function ItemMovementsPage() {
     <div>
       <PageHeader title={`Stock history${item ? ` — ${item.name}` : ''}`} />
       {item && (
-        <p className="mb-4 text-sm text-gray-500">
-          Current on hand: <span className="font-semibold text-gray-900">{Number(item.stockOnHand)}</span> {item.unit}
+        <p className="mb-4 text-sm text-muted">
+          Current on hand: <span className="font-semibold text-fg">{Number(item.stockOnHand)}</span> {item.unit}
         </p>
       )}
-      <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200">
+      <div className="overflow-hidden rounded-xl bg-surface shadow-sm ring-1 ring-line">
         <table className="w-full text-sm">
-          <thead className="border-b border-gray-200 text-left text-gray-500">
+          <thead className="border-b border-line text-left text-muted">
             <tr>
               <th className="px-4 py-3 font-medium">Date</th>
               <th className="px-4 py-3 font-medium">Reason</th>
@@ -46,15 +46,15 @@ export default function ItemMovementsPage() {
           </thead>
           <tbody>
             {movements.length === 0 ? (
-              <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-400">No movements yet.</td></tr>
+              <tr><td colSpan={4} className="px-4 py-8 text-center text-muted">No movements yet.</td></tr>
             ) : (
               movements.map((m) => {
                 const q = Number(m.qty);
                 return (
-                  <tr key={m.id} className="border-b border-gray-100 last:border-0">
-                    <td className="px-4 py-3 text-gray-500">{formatDate(m.createdAt)}</td>
-                    <td className="px-4 py-3 text-gray-700">{REASON_LABEL[m.reason] ?? m.reason}</td>
-                    <td className="px-4 py-3 text-gray-500">{m.note ?? '—'}</td>
+                  <tr key={m.id} className="border-b border-line last:border-0">
+                    <td className="px-4 py-3 text-muted">{formatDate(m.createdAt)}</td>
+                    <td className="px-4 py-3 text-fg">{REASON_LABEL[m.reason] ?? m.reason}</td>
+                    <td className="px-4 py-3 text-muted">{m.note ?? '—'}</td>
                     <td className={`px-4 py-3 text-right tabular-nums font-medium ${q < 0 ? 'text-red-600' : 'text-green-700'}`}>
                       {q > 0 ? `+${q}` : q}
                     </td>

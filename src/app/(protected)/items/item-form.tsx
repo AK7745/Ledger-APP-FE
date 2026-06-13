@@ -89,7 +89,7 @@ export default function ItemForm({ item }: { item?: Item }) {
         </div>
 
         {form.type === 'STOCK' && (
-          <label className="flex items-center gap-2 text-sm text-gray-700">
+          <label className="flex items-center gap-2 text-sm text-fg">
             <input
               type="checkbox"
               checked={form.trackInventory}

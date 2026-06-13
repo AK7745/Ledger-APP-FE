@@ -78,13 +78,13 @@ export default function NoteEditor({
   return (
     <div className="space-y-4">
       <Card>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted">
           This {kind === 'CREDIT' ? 'credit note' : 'debit note'} will reduce the {kind === 'CREDIT' ? "invoice's" : "bill's"} balance by its total — recording a {verb}.
         </p>
       </Card>
       <Card>
         <table className="w-full text-sm">
-          <thead className="text-left text-gray-500">
+          <thead className="text-left text-muted">
             <tr>
               <th className="pb-2 font-medium">Item / description</th>
               <th className="pb-2 font-medium w-20 text-right">Qty</th>
@@ -96,7 +96,7 @@ export default function NoteEditor({
           </thead>
           <tbody>
             {lines.map((l) => (
-              <tr key={l.key} className="border-t border-gray-100">
+              <tr key={l.key} className="border-t border-line">
                 <td className="py-2 pr-2">
                   <Select value={l.itemId} onChange={(e) => pickItem(l.key, e.target.value)} className="mt-0 mb-1">
                     <option value="">Free text…</option>
@@ -107,14 +107,14 @@ export default function NoteEditor({
                 <td className="py-2 pr-2 align-top"><Input type="number" min="0" step="0.001" value={l.qty} onChange={(e) => updateLine(l.key, { qty: e.target.value })} className="mt-0 text-right" /></td>
                 <td className="py-2 pr-2 align-top"><Input type="number" min="0" step="0.01" value={l.unitPrice} onChange={(e) => updateLine(l.key, { unitPrice: e.target.value })} className="mt-0 text-right" /></td>
                 <td className="py-2 pr-2 align-top"><Input type="number" min="0" step="0.01" value={l.discount} onChange={(e) => updateLine(l.key, { discount: e.target.value })} className="mt-0 text-right" /></td>
-                <td className="py-2 pr-2 text-right align-top tabular-nums text-gray-900">{money(lineTotal(l))}</td>
-                <td className="py-2 align-top text-right"><button type="button" onClick={() => setLines((ls) => ls.filter((x) => x.key !== l.key))} className="text-gray-400 hover:text-red-600">✕</button></td>
+                <td className="py-2 pr-2 text-right align-top tabular-nums text-fg">{money(lineTotal(l))}</td>
+                <td className="py-2 align-top text-right"><button type="button" onClick={() => setLines((ls) => ls.filter((x) => x.key !== l.key))} className="text-muted hover:text-red-600">✕</button></td>
               </tr>
             ))}
           </tbody>
         </table>
-        <button type="button" onClick={() => setLines((ls) => [...ls, { key: nextKey(), itemId: '', description: '', qty: '1', unitPrice: '0', discount: '0' }])} className="mt-3 text-sm font-medium text-gray-700 hover:underline">+ Add line</button>
-        <div className="mt-4 text-right text-base font-semibold text-gray-900">Total: {money(total)}</div>
+        <button type="button" onClick={() => setLines((ls) => [...ls, { key: nextKey(), itemId: '', description: '', qty: '1', unitPrice: '0', discount: '0' }])} className="mt-3 text-sm font-medium text-fg hover:underline">+ Add line</button>
+        <div className="mt-4 text-right text-base font-semibold text-fg">Total: {money(total)}</div>
       </Card>
       <Card>
         <Field label="Reason"><Textarea rows={2} value={reason} onChange={(e) => setReason(e.target.value)} /></Field>

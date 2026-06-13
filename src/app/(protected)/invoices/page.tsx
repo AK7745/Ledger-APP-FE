@@ -46,8 +46,8 @@ export default function InvoicesPage() {
             onClick={() => setFilter(t.value)}
             className={`rounded-md px-3 py-1.5 text-sm ${
               filter === t.value
-                ? 'bg-gray-900 text-white'
-                : 'bg-white text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50'
+                ? 'bg-accent text-white'
+                : 'bg-surface text-muted ring-1 ring-line hover:bg-hover'
             }`}
           >
             {t.label}
@@ -55,9 +55,9 @@ export default function InvoicesPage() {
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200">
+      <div className="overflow-hidden rounded-xl bg-surface shadow-sm ring-1 ring-line">
         <table className="w-full text-sm">
-          <thead className="border-b border-gray-200 text-left text-gray-500">
+          <thead className="border-b border-line text-left text-muted">
             <tr>
               <th className="px-4 py-3 font-medium">Number</th>
               <th className="px-4 py-3 font-medium">Customer</th>
@@ -69,26 +69,26 @@ export default function InvoicesPage() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">Loading…</td></tr>
+              <tr><td colSpan={6} className="px-4 py-8 text-center text-muted">Loading…</td></tr>
             ) : invoices.length === 0 ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">No invoices yet.</td></tr>
+              <tr><td colSpan={6} className="px-4 py-8 text-center text-muted">No invoices yet.</td></tr>
             ) : (
               invoices.map((inv) => (
                 <tr
                   key={inv.id}
                   onClick={() => router.push(`/invoices/${inv.id}`)}
-                  className="cursor-pointer border-b border-gray-100 last:border-0 hover:bg-gray-50"
+                  className="cursor-pointer border-b border-line last:border-0 hover:bg-hover"
                 >
-                  <td className="px-4 py-3 font-medium text-gray-900">{inv.number ?? 'Draft'}</td>
-                  <td className="px-4 py-3 text-gray-700">{inv.party?.name ?? '—'}</td>
-                  <td className="px-4 py-3 text-gray-500">{formatDate(inv.issueDate)}</td>
+                  <td className="px-4 py-3 font-medium text-fg">{inv.number ?? 'Draft'}</td>
+                  <td className="px-4 py-3 text-fg">{inv.party?.name ?? '—'}</td>
+                  <td className="px-4 py-3 text-muted">{formatDate(inv.issueDate)}</td>
                   <td className="px-4 py-3">
                     <span className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[inv.status]}`}>
                       {inv.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-right tabular-nums text-gray-700">{money(inv.grandTotal)}</td>
-                  <td className="px-4 py-3 text-right tabular-nums text-gray-900">{money(inv.balance)}</td>
+                  <td className="px-4 py-3 text-right tabular-nums text-fg">{money(inv.grandTotal)}</td>
+                  <td className="px-4 py-3 text-right tabular-nums text-fg">{money(inv.balance)}</td>
                 </tr>
               ))
             )}

@@ -1,16 +1,46 @@
 @import "tailwindcss";
 
-/* Light-themed business app — fixed colors (no OS dark-mode override). */
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
+/* Semantic color tokens — utilities like bg-surface / text-fg / border-line
+   resolve to these CSS vars, which swap under .dark. One place to theme. */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-app: var(--app);
+  --color-surface: var(--surface);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-hover: var(--hover);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-fg: var(--accent-fg);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+}
+
+/* Light theme */
+:root {
+  --app: #f9fafb;
+  --surface: #ffffff;
+  --fg: #111827;
+  --muted: #6b7280;
+  --line: #e5e7eb;
+  --hover: #f3f4f6;
+  --accent: #111827;
+  --accent-hover: #1f2937;
+  --accent-fg: #ffffff;
+}
+
+/* Dark theme — navy blue */
+.dark {
+  color-scheme: dark;
+  --app: #0a1222;
+  --surface: #111d36;
+  --fg: #e8eef8;
+  --muted: #93a4be;
+  --line: #20314e;
+  --hover: #1a2942;
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --accent-fg: #ffffff;
 }
 
 html,
@@ -19,16 +49,25 @@ body {
 }
 
 body {
-  background: #f9fafb; /* gray-50 — matches the app surface */
-  color: var(--foreground);
+  background: var(--app);
+  color: var(--fg);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
-/* Print: A4 page, white background, hide anything marked .no-print */
+/* Print: always light, A4, hide app chrome — regardless of theme. */
 @media print {
   @page {
     size: A4;
     margin: 14mm;
+  }
+  :root,
+  .dark {
+    --app: #ffffff;
+    --surface: #ffffff;
+    --fg: #111827;
+    --muted: #4b5563;
+    --line: #e5e7eb;
+    --hover: #f3f4f6;
   }
   body {
     background: #fff;

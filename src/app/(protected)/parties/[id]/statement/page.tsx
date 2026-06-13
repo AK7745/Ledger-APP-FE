@@ -10,8 +10,8 @@ import { Card, LinkButton, PageHeader } from '@/components/ui';
 function Stat({ label, value, accent }: { label: string; value: string; accent?: string }) {
   return (
     <Card>
-      <div className="text-xs uppercase tracking-wide text-gray-500">{label}</div>
-      <div className={`mt-1 text-xl font-semibold tabular-nums ${accent ?? 'text-gray-900'}`}>{value}</div>
+      <div className="text-xs uppercase tracking-wide text-muted">{label}</div>
+      <div className={`mt-1 text-xl font-semibold tabular-nums ${accent ?? 'text-fg'}`}>{value}</div>
     </Card>
   );
 }
@@ -26,11 +26,11 @@ export default function StatementPage() {
   }, [id]);
 
   if (error) return <p className="text-sm text-red-600">{error}</p>;
-  if (!s) return <p className="text-gray-400">Loading…</p>;
+  if (!s) return <p className="text-muted">Loading…</p>;
 
   const net = Number(s.summary.netBalance);
   const netLabel = net > 0 ? 'Owes you' : net < 0 ? 'You owe' : 'Settled';
-  const netAccent = net > 0 ? 'text-green-700' : net < 0 ? 'text-red-700' : 'text-gray-900';
+  const netAccent = net > 0 ? 'text-green-700' : net < 0 ? 'text-red-700' : 'text-fg';
 
   return (
     <div className="space-y-4">
@@ -38,7 +38,7 @@ export default function StatementPage() {
         title={`Statement — ${s.party.name}`}
         action={
           <div className="flex gap-2 no-print">
-            <button onClick={() => window.print()} className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">Print / PDF</button>
+            <button onClick={() => window.print()} className="rounded-md border border-line px-4 py-2 text-sm font-medium text-fg hover:bg-hover">Print / PDF</button>
             <LinkButton href={`/payments/new?partyId=${id}`}>Receive</LinkButton>
             <LinkButton href={`/payments/new?partyId=${id}&direction=OUT`}>Pay</LinkButton>
           </div>
@@ -46,11 +46,11 @@ export default function StatementPage() {
       />
 
       <Card>
-        <div className="text-xs uppercase tracking-wide text-gray-500">Net balance</div>
+        <div className="text-xs uppercase tracking-wide text-muted">Net balance</div>
         <div className={`mt-1 text-3xl font-bold tabular-nums ${netAccent}`}>
           {money(Math.abs(net))}
         </div>
-        <div className="text-sm text-gray-500">{netLabel}{net !== 0 ? '' : ' — nothing outstanding'}</div>
+        <div className="text-sm text-muted">{netLabel}{net !== 0 ? '' : ' — nothing outstanding'}</div>
       </Card>
 
       <div className="grid grid-cols-2 gap-4">
@@ -64,9 +64,9 @@ export default function StatementPage() {
         <Stat label="Paid out" value={money(s.summary.totalPaidOut)} />
       </div>
 
-      <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200">
+      <div className="overflow-hidden rounded-xl bg-surface shadow-sm ring-1 ring-line">
         <table className="w-full text-sm">
-          <thead className="border-b border-gray-200 text-left text-gray-500">
+          <thead className="border-b border-line text-left text-muted">
             <tr>
               <th className="px-4 py-3 font-medium">Date</th>
               <th className="px-4 py-3 font-medium">Ref</th>
@@ -78,26 +78,26 @@ export default function StatementPage() {
           </thead>
           <tbody>
             {s.entries.length === 0 ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">No activity yet.</td></tr>
+              <tr><td colSpan={6} className="px-4 py-8 text-center text-muted">No activity yet.</td></tr>
             ) : (
               s.entries.map((e, i) => (
-                <tr key={i} className="border-b border-gray-100 last:border-0">
-                  <td className="px-4 py-3 text-gray-500">{formatDate(e.date)}</td>
-                  <td className="px-4 py-3 text-gray-700">{e.ref ?? '—'}</td>
-                  <td className="px-4 py-3 text-gray-700">
+                <tr key={i} className="border-b border-line last:border-0">
+                  <td className="px-4 py-3 text-muted">{formatDate(e.date)}</td>
+                  <td className="px-4 py-3 text-fg">{e.ref ?? '—'}</td>
+                  <td className="px-4 py-3 text-fg">
                     {e.description}
                     {e.pending && <span className="ml-2 rounded bg-amber-50 px-1.5 py-0.5 text-xs text-amber-700">pending</span>}
                   </td>
-                  <td className="px-4 py-3 text-right tabular-nums text-gray-700">{e.debit !== '0' ? money(e.debit) : ''}</td>
-                  <td className="px-4 py-3 text-right tabular-nums text-gray-700">{e.credit !== '0' ? money(e.credit) : ''}</td>
-                  <td className="px-4 py-3 text-right tabular-nums font-medium text-gray-900">{money(e.runningBalance)}</td>
+                  <td className="px-4 py-3 text-right tabular-nums text-fg">{e.debit !== '0' ? money(e.debit) : ''}</td>
+                  <td className="px-4 py-3 text-right tabular-nums text-fg">{e.credit !== '0' ? money(e.credit) : ''}</td>
+                  <td className="px-4 py-3 text-right tabular-nums font-medium text-fg">{money(e.runningBalance)}</td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
       </div>
-      <p className="text-xs text-gray-400">Positive balance = they owe you; negative = you owe them.</p>
+      <p className="text-xs text-muted">Positive balance = they owe you; negative = you owe them.</p>
     </div>
   );
 }

@@ -35,13 +35,13 @@ export default function PaymentDetailPage() {
   }
 
   if (error && !p) return <p className="text-sm text-red-600">{error}</p>;
-  if (!p) return <p className="text-gray-400">Loading…</p>;
+  if (!p) return <p className="text-muted">Loading…</p>;
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl font-semibold text-gray-900">
+          <h1 className="text-xl font-semibold text-fg">
             {p.direction === 'OUT' ? 'Payment voucher' : 'Receipt'} {p.number}
           </h1>
           <span className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[p.status]}`}>{p.status}</span>
@@ -74,28 +74,28 @@ export default function PaymentDetailPage() {
 
       <Card>
         <div className="grid grid-cols-2 gap-4 text-sm">
-          <div><div className="text-gray-500">{p.direction === 'OUT' ? 'Supplier' : 'Customer'}</div><div className="font-medium text-gray-900">{p.party?.name}</div></div>
-          <div><div className="text-gray-500">Amount</div><div className="text-lg font-semibold text-gray-900 tabular-nums">{money(p.amount)}</div></div>
-          <div><div className="text-gray-500">Date</div><div className="text-gray-900">{formatDate(p.date)}</div></div>
-          <div><div className="text-gray-500">Method</div><div className="text-gray-900">{p.method ?? '—'}{p.reference ? ` · ${p.reference}` : ''}</div></div>
+          <div><div className="text-muted">{p.direction === 'OUT' ? 'Supplier' : 'Customer'}</div><div className="font-medium text-fg">{p.party?.name}</div></div>
+          <div><div className="text-muted">Amount</div><div className="text-lg font-semibold text-fg tabular-nums">{money(p.amount)}</div></div>
+          <div><div className="text-muted">Date</div><div className="text-fg">{formatDate(p.date)}</div></div>
+          <div><div className="text-muted">Method</div><div className="text-fg">{p.method ?? '—'}{p.reference ? ` · ${p.reference}` : ''}</div></div>
         </div>
         {p.reversalReason && <p className="mt-3 text-sm text-red-600">{p.status}: {p.reversalReason}</p>}
       </Card>
 
       <Card>
-        <div className="mb-2 text-sm font-medium text-gray-700">Applied to</div>
+        <div className="mb-2 text-sm font-medium text-fg">Applied to</div>
         <table className="w-full text-sm">
           <tbody>
             {p.allocations.map((a) => (
-              <tr key={a.id} className="border-t border-gray-100 first:border-0">
+              <tr key={a.id} className="border-t border-line first:border-0">
                 <td className="py-2">
                   {a.invoiceId ? (
-                    <Link href={`/invoices/${a.invoiceId}`} className="text-gray-700 underline">Invoice</Link>
+                    <Link href={`/invoices/${a.invoiceId}`} className="text-fg underline">Invoice</Link>
                   ) : a.billId ? (
-                    <Link href={`/bills/${a.billId}`} className="text-gray-700 underline">Bill</Link>
+                    <Link href={`/bills/${a.billId}`} className="text-fg underline">Bill</Link>
                   ) : '—'}
                 </td>
-                <td className="py-2 text-right tabular-nums text-gray-900">{money(a.amount)}</td>
+                <td className="py-2 text-right tabular-nums text-fg">{money(a.amount)}</td>
               </tr>
             ))}
           </tbody>

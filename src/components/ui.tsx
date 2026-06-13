@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { ComponentProps, ReactNode } from 'react';
 
 const inputCls =
-  'mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none disabled:bg-gray-100';
+  'mt-1 w-full rounded-md border border-line px-3 py-2 text-sm text-fg focus:border-accent focus:outline-none disabled:bg-hover';
 
 export function Field({
   label,
@@ -15,9 +15,9 @@ export function Field({
 }) {
   return (
     <label className="block">
-      <span className="block text-sm font-medium text-gray-700">{label}</span>
+      <span className="block text-sm font-medium text-fg">{label}</span>
       {children}
-      {hint && <span className="mt-1 block text-xs text-gray-400">{hint}</span>}
+      {hint && <span className="mt-1 block text-xs text-muted">{hint}</span>}
     </label>
   );
 }
@@ -40,8 +40,8 @@ export function Button({
   ...props
 }: ComponentProps<'button'> & { variant?: 'primary' | 'secondary' | 'danger' }) {
   const styles = {
-    primary: 'bg-gray-900 text-white hover:bg-gray-800',
-    secondary: 'border border-gray-300 text-gray-700 hover:bg-gray-100',
+    primary: 'bg-accent text-white hover:bg-accent-hover',
+    secondary: 'border border-line text-fg hover:bg-hover',
     danger: 'border border-red-300 text-red-700 hover:bg-red-50',
   }[variant];
   return (
@@ -63,8 +63,8 @@ export function LinkButton({
 }) {
   const styles =
     variant === 'primary'
-      ? 'bg-gray-900 text-white hover:bg-gray-800'
-      : 'border border-gray-300 text-gray-700 hover:bg-gray-100';
+      ? 'bg-accent text-white hover:bg-accent-hover'
+      : 'border border-line text-fg hover:bg-hover';
   return (
     <Link
       href={href}
@@ -77,7 +77,7 @@ export function LinkButton({
 
 export function Card({ children }: { children: ReactNode }) {
   return (
-    <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+    <div className="rounded-xl bg-surface p-6 shadow-sm ring-1 ring-line">
       {children}
     </div>
   );
@@ -97,7 +97,7 @@ export function PageHeader({
 }) {
   return (
     <div className="mb-5 flex items-center justify-between">
-      <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
+      <h1 className="text-xl font-semibold text-fg">{title}</h1>
       {action}
     </div>
   );

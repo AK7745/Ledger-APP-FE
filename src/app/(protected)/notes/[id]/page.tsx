@@ -62,7 +62,7 @@ export default function NoteDetailPage() {
   }
 
   if (error && !n) return <p className="text-sm text-red-600">{error}</p>;
-  if (!n) return <p className="text-gray-400">Loading…</p>;
+  if (!n) return <p className="text-muted">Loading…</p>;
 
   const isDraft = n.status === 'DRAFT';
   const targetHref = n.kind === 'CREDIT' ? `/invoices/${n.invoiceId}` : `/bills/${n.billId}`;
@@ -72,7 +72,7 @@ export default function NoteDetailPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl font-semibold text-gray-900">{title} {n.number ?? '(draft)'}</h1>
+          <h1 className="text-xl font-semibold text-fg">{title} {n.number ?? '(draft)'}</h1>
           <span className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[n.status]}`}>{n.status}</span>
         </div>
         <div className="flex gap-2">
@@ -85,17 +85,17 @@ export default function NoteDetailPage() {
 
       <Card>
         <div className="grid grid-cols-3 gap-4 text-sm">
-          <div><div className="text-gray-500">{n.kind === 'CREDIT' ? 'Customer' : 'Supplier'}</div><div className="font-medium text-gray-900">{n.party?.name}</div></div>
-          <div><div className="text-gray-500">Against</div><Link href={targetHref} className="font-medium text-gray-700 underline">{n.kind === 'CREDIT' ? 'Invoice' : 'Bill'}</Link></div>
-          <div><div className="text-gray-500">Date</div><div className="text-gray-900">{formatDate(n.issueDate)}</div></div>
+          <div><div className="text-muted">{n.kind === 'CREDIT' ? 'Customer' : 'Supplier'}</div><div className="font-medium text-fg">{n.party?.name}</div></div>
+          <div><div className="text-muted">Against</div><Link href={targetHref} className="font-medium text-fg underline">{n.kind === 'CREDIT' ? 'Invoice' : 'Bill'}</Link></div>
+          <div><div className="text-muted">Date</div><div className="text-fg">{formatDate(n.issueDate)}</div></div>
         </div>
-        {n.reason && <p className="mt-3 text-sm text-gray-600">Reason: {n.reason}</p>}
+        {n.reason && <p className="mt-3 text-sm text-muted">Reason: {n.reason}</p>}
         {n.voidReason && <p className="mt-2 text-sm text-red-600">Voided: {n.voidReason}</p>}
       </Card>
 
       <Card>
         <table className="w-full text-sm">
-          <thead className="text-left text-gray-500">
+          <thead className="text-left text-muted">
             <tr>
               <th className="pb-2 font-medium">Description</th>
               <th className="pb-2 font-medium text-right">Qty</th>
@@ -105,16 +105,16 @@ export default function NoteDetailPage() {
           </thead>
           <tbody>
             {n.lines.map((l) => (
-              <tr key={l.id} className="border-t border-gray-100">
-                <td className="py-2 text-gray-900">{l.description}</td>
+              <tr key={l.id} className="border-t border-line">
+                <td className="py-2 text-fg">{l.description}</td>
                 <td className="py-2 text-right tabular-nums">{Number(l.qty)}</td>
                 <td className="py-2 text-right tabular-nums">{money(l.unitPrice)}</td>
-                <td className="py-2 text-right tabular-nums text-gray-900">{money(l.lineTotal)}</td>
+                <td className="py-2 text-right tabular-nums text-fg">{money(l.lineTotal)}</td>
               </tr>
             ))}
           </tbody>
         </table>
-        <div className="mt-3 text-right text-base font-semibold text-gray-900">Total: {money(n.grandTotal)}</div>
+        <div className="mt-3 text-right text-base font-semibold text-fg">Total: {money(n.grandTotal)}</div>
       </Card>
     </div>
   );
