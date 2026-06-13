@@ -77,6 +77,9 @@ export default function InvoiceDetailPage() {
           {isDraft && <LinkButton href={`/invoices/${id}/edit`} variant="secondary">Edit</LinkButton>}
           {isDraft && <Button onClick={finalize} disabled={busy}>Finalize</Button>}
           {isDraft && <Button onClick={remove} disabled={busy} variant="danger">Delete</Button>}
+          {canVoid && Number(inv.balance) > 0 && (
+            <LinkButton href={`/payments/new?partyId=${inv.partyId}`}>Record payment</LinkButton>
+          )}
           {canVoid && <Button onClick={voidInvoice} disabled={busy} variant="danger">Void</Button>}
         </div>
       </div>

@@ -49,5 +49,8 @@ The `ledger-api` backend must be running (`docker compose up -d db` + `npm run s
 - ✅ Auth UI: login, register, logout, server-gated dashboard.
 - ✅ Generic authed proxy + client `api` helper + shared UI kit + nav.
 - ✅ Parties management (list, type tabs, new/edit, archive). Items management (list, new/edit, archive).
-- ✅ **Invoices UI** — list (status tabs), invoice **editor** (`invoice-editor.tsx`: customer picker, dynamic line rows with item prefill, live totals; shared by `new` + `[id]/edit`), detail view (`[id]`) with finalize / void / delete actions. Verified end-to-end through the proxy (create draft → totals → finalize → list).
-- ⏭️ Next: **Payments UI** (record payment against invoices, oldest-first/manual, clear/bounce/void) + **Statement** view (`/parties/:id/statement`), then **PDF** of the 3 documents (one HTML template → preview + A4), Business Profile settings.
+- ✅ **Invoices UI** — list (status tabs), invoice **editor** (`invoice-editor.tsx`: customer picker, dynamic line rows with item prefill, live totals; shared by `new` + `[id]/edit`), detail view (`[id]`) with finalize / void / delete / record-payment.
+- ✅ **Payments UI** — `payment-form.tsx` (customer, amount, method, reference, date, cleared/pending; per-invoice allocation auto oldest-first + editable, remaining tracker), payments list, payment detail `[id]` (clear/bounce/void). `new/page.tsx` reads `?partyId` via `useSearchParams` (wrapped in `<Suspense>`).
+- ✅ **Statement view** — `/parties/[id]/statement`: summary cards (invoiced/paid/pending/outstanding) + timeline with running balance. Entry points: Statement link on parties list, Record-payment on invoice detail + statement.
+- Full money loop verified end-to-end through the proxy (invoice → payment → PARTIAL/balance → statement).
+- ⏭️ Next: **PDF** of the 3 documents (Invoice/Receipt/Statement — one HTML template → preview + A4), **Business Profile** settings, then credit notes / inventory / vendor bills. Before deploy: lock down public `/auth/register`.

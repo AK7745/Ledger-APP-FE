@@ -8,6 +8,7 @@ const links = [
   { href: '/parties', label: 'Parties' },
   { href: '/items', label: 'Items' },
   { href: '/invoices', label: 'Invoices' },
+  { href: '/payments', label: 'Payments' },
 ];
 
 export default function Nav() {

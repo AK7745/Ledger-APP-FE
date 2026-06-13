@@ -91,7 +91,10 @@ export default function PartiesPage() {
                     {p.phone || p.email || '—'}
                   </td>
                   <td className="px-4 py-3 text-right whitespace-nowrap">
-                    <Link href={`/parties/${p.id}`} className="text-gray-700 underline">
+                    <Link href={`/parties/${p.id}/statement`} className="text-gray-700 underline">
+                      Statement
+                    </Link>
+                    <Link href={`/parties/${p.id}`} className="ml-4 text-gray-700 underline">
                       Edit
                     </Link>
                     <button

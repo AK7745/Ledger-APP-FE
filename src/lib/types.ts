@@ -42,6 +42,53 @@ export interface InvoiceLine {
   position: number;
 }
 
+export type PaymentStatus = 'PENDING' | 'CLEARED' | 'BOUNCED' | 'VOID';
+
+export interface PaymentAllocation {
+  id: string;
+  invoiceId: string | null;
+  amount: string;
+}
+
+export interface Payment {
+  id: string;
+  number: string | null;
+  partyId: string;
+  party?: { id: string; name: string };
+  status: PaymentStatus;
+  date: string;
+  clearedAt: string | null;
+  amount: string;
+  method: string | null;
+  reference: string | null;
+  note: string | null;
+  reversalReason: string | null;
+  allocations: PaymentAllocation[];
+}
+
+export interface StatementEntry {
+  date: string;
+  type: 'INVOICE' | 'PAYMENT';
+  ref: string | null;
+  description: string;
+  debit: string;
+  credit: string;
+  status: string;
+  pending: boolean;
+  runningBalance: string;
+}
+
+export interface Statement {
+  party: Party;
+  summary: {
+    totalInvoiced: string;
+    totalPaid: string;
+    totalPending: string;
+    outstanding: string;
+  };
+  entries: StatementEntry[];
+}
+
 export interface Invoice {
   id: string;
   number: string | null;

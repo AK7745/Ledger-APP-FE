@@ -22,4 +22,8 @@ export const STATUS_BADGE: Record<string, string> = {
   PARTIAL: 'bg-amber-50 text-amber-700',
   PAID: 'bg-green-50 text-green-700',
   VOID: 'bg-red-50 text-red-700',
+  // payment statuses
+  PENDING: 'bg-amber-50 text-amber-700',
+  CLEARED: 'bg-green-50 text-green-700',
+  BOUNCED: 'bg-red-50 text-red-700',
 };
