@@ -48,5 +48,6 @@ The `ledger-api` backend must be running (`docker compose up -d db` + `npm run s
 ## Status / next
 - ✅ Auth UI: login, register, logout, server-gated dashboard.
 - ✅ Generic authed proxy + client `api` helper + shared UI kit + nav.
-- ✅ Parties management (list, type tabs, new/edit, archive). Items management (list, new/edit, archive). Verified end-to-end through the proxy.
-- ⏭️ Next: **Invoices UI** — list, the invoice editor (add lines, live totals, save draft → finalize), then **Payments** (record against invoices, statement view) and **PDF** rendering of the 3 documents.
+- ✅ Parties management (list, type tabs, new/edit, archive). Items management (list, new/edit, archive).
+- ✅ **Invoices UI** — list (status tabs), invoice **editor** (`invoice-editor.tsx`: customer picker, dynamic line rows with item prefill, live totals; shared by `new` + `[id]/edit`), detail view (`[id]`) with finalize / void / delete actions. Verified end-to-end through the proxy (create draft → totals → finalize → list).
+- ⏭️ Next: **Payments UI** (record payment against invoices, oldest-first/manual, clear/bounce/void) + **Statement** view (`/parties/:id/statement`), then **PDF** of the 3 documents (one HTML template → preview + A4), Business Profile settings.
