@@ -19,13 +19,20 @@ The JWT is **never exposed to browser JS**. Flow:
 
 Benefits: token unstealable by XSS; browser never hits the API directly, so **no CORS**.
 
+## Data access (two paths)
+- **Server Components** → `apiFetch()` / `getCurrentUser()` in `src/lib/api.ts` (reads cookie directly). Used by the auth gate.
+- **Client Components** → `api` in `src/lib/client.ts` (`api.get/post/patch/del`) which calls the **generic proxy** `src/app/api/proxy/[...path]/route.ts`. The proxy forwards any method to `${API_URL}/<path>` with the cookie's Bearer token attached. So client screens do CRUD without the token ever touching JS, and there's no CORS.
+
 ## Key files
 - `src/lib/auth.ts` — cookie name + options + `AuthUser` type.
-- `src/lib/api.ts` — `apiFetch()` (server-side, cookie→Bearer) + `getCurrentUser()`.
-- `src/app/api/auth/*` — BFF route handlers (login/register set cookie, logout clears it).
-- `src/app/login`, `src/app/register` — client form pages → post to the BFF.
-- `src/app/(protected)/layout.tsx` — server-side auth gate + app shell (header, logout).
-- `src/app/(protected)/dashboard/page.tsx` — placeholder home for signed-in users.
+- `src/lib/api.ts` — server-side `apiFetch()` + `getCurrentUser()`.
+- `src/lib/client.ts` — client-side `api` helper (→ `/api/proxy/*`). `ApiError` carries status + flattened validation message.
+- `src/lib/types.ts` — `Party`, `Item`, enums (money fields are strings — Prisma Decimal).
+- `src/components/ui.tsx` — shared `Button/Input/Select/Field/Card/PageHeader/LinkButton`.
+- `src/app/api/auth/*` — BFF auth route handlers; `src/app/api/proxy/[...path]` — generic authed proxy.
+- `src/app/(protected)/layout.tsx` — server-side auth gate + shell + `nav.tsx`.
+- `src/app/(protected)/parties` + `items` — list / `new` / `[id]` edit pages + shared `*-form.tsx`. List/edit pages are client components (`useParams` for the id). Archive = soft delete.
+- `src/app/(protected)/invoices/page.tsx` — placeholder (editor is next).
 - `src/app/page.tsx` — redirects to `/dashboard`.
 
 ## Local development
@@ -39,5 +46,7 @@ npx next dev -p 3001              # http://localhost:3001
 The `ledger-api` backend must be running (`docker compose up -d db` + `npm run start:dev` in that repo).
 
 ## Status / next
-- ✅ Auth UI: login, register, logout, server-gated dashboard. Verified end-to-end against the live API.
-- ⏭️ Next: Parties + Invoices UI once those backend modules exist.
+- ✅ Auth UI: login, register, logout, server-gated dashboard.
+- ✅ Generic authed proxy + client `api` helper + shared UI kit + nav.
+- ✅ Parties management (list, type tabs, new/edit, archive). Items management (list, new/edit, archive). Verified end-to-end through the proxy.
+- ⏭️ Next: **Invoices UI** — list, the invoice editor (add lines, live totals, save draft → finalize), then **Payments** (record against invoices, statement view) and **PDF** rendering of the 3 documents.
