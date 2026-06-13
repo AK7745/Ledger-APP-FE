@@ -39,11 +39,13 @@ export default function PaymentDetailPage() {
     <div className="mx-auto max-w-2xl space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl font-semibold text-gray-900">Receipt {p.number}</h1>
+          <h1 className="text-xl font-semibold text-gray-900">
+            {p.direction === 'OUT' ? 'Payment voucher' : 'Receipt'} {p.number}
+          </h1>
           <span className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[p.status]}`}>{p.status}</span>
         </div>
         <div className="flex gap-2">
-          <LinkButton href={`/payments/${id}/print`} variant="secondary">Print receipt</LinkButton>
+          <LinkButton href={`/payments/${id}/print`} variant="secondary">Print</LinkButton>
           {p.status === 'PENDING' && <Button onClick={() => act(() => api.post(`payments/${id}/clear`))} disabled={busy}>Mark cleared</Button>}
           {(p.status === 'PENDING' || p.status === 'CLEARED') && (
             <Button variant="danger" disabled={busy}
@@ -64,7 +66,7 @@ export default function PaymentDetailPage() {
 
       <Card>
         <div className="grid grid-cols-2 gap-4 text-sm">
-          <div><div className="text-gray-500">Customer</div><div className="font-medium text-gray-900">{p.party?.name}</div></div>
+          <div><div className="text-gray-500">{p.direction === 'OUT' ? 'Supplier' : 'Customer'}</div><div className="font-medium text-gray-900">{p.party?.name}</div></div>
           <div><div className="text-gray-500">Amount</div><div className="text-lg font-semibold text-gray-900 tabular-nums">{money(p.amount)}</div></div>
           <div><div className="text-gray-500">Date</div><div className="text-gray-900">{formatDate(p.date)}</div></div>
           <div><div className="text-gray-500">Method</div><div className="text-gray-900">{p.method ?? '—'}{p.reference ? ` · ${p.reference}` : ''}</div></div>
@@ -81,6 +83,8 @@ export default function PaymentDetailPage() {
                 <td className="py-2">
                   {a.invoiceId ? (
                     <Link href={`/invoices/${a.invoiceId}`} className="text-gray-700 underline">Invoice</Link>
+                  ) : a.billId ? (
+                    <Link href={`/bills/${a.billId}`} className="text-gray-700 underline">Bill</Link>
                   ) : '—'}
                 </td>
                 <td className="py-2 text-right tabular-nums text-gray-900">{money(a.amount)}</td>

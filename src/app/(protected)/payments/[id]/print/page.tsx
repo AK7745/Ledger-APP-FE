@@ -26,14 +26,18 @@ export default function ReceiptPrintPage() {
         <div className="flex items-start justify-between">
           <BusinessHeaderBlock profile={profile} />
           <div className="text-right">
-            <div className="text-2xl font-bold tracking-wide text-gray-900">RECEIPT</div>
+            <div className="text-2xl font-bold tracking-wide text-gray-900">
+              {p.direction === 'OUT' ? 'PAYMENT VOUCHER' : 'RECEIPT'}
+            </div>
             <div className="mt-1 text-sm text-gray-700">{p.number}</div>
             <div className="mt-2 text-sm text-gray-600">{formatDate(p.date)}</div>
           </div>
         </div>
 
         <div className="mt-8">
-          <div className="text-xs uppercase tracking-wide text-gray-400">Received from</div>
+          <div className="text-xs uppercase tracking-wide text-gray-400">
+            {p.direction === 'OUT' ? 'Paid to' : 'Received from'}
+          </div>
           <div className="font-medium text-gray-900">{p.party?.name}</div>
         </div>
 
