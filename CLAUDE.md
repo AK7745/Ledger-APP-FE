@@ -1,60 +1,55 @@
 @AGENTS.md
 
-# CLAUDE.md — ledger-web
+# CLAUDE.md — ledger-web (frontend)
 
-Frontend for **Ledger**. Keep current as the UI grows.
+Authoritative reference for the Ledger frontend. **Keep this current with every change.**
+Backend + system-wide design: `../ledger-api/CLAUDE.md` and `../ledger-api/docs/ARCHITECTURE.md`.
 
-> ⚠️ **Next.js 16** (see AGENTS.md above) — newer than training data. `cookies()` is **async** (`await cookies()`). Middleware was renamed: `proxy.ts` replaces `middleware.ts` in v16 — but we deliberately use **neither** (see auth below). Verify APIs against the installed package, not memory.
+> ⚠️ **Next.js 16 gotchas** (newer than training data — verify against the installed package, not memory):
+> - `cookies()` is **async** → `await cookies()`.
+> - **Do NOT put a manual `<head>` in the root layout** — it breaks hydration (left client components, e.g. the theme toggle, inert). Put pre-paint scripts at the top of `<body>`.
+> - `middleware.ts` was renamed `proxy.ts` in v16 — we use **neither** (auth gating is server-side in the layout).
+> - `suppressHydrationWarning` on `<html>` (theme class) and `<body>` (browser-extension attrs like `bis_register`).
 
 ## Stack
-- **Next.js 16** (App Router, Turbopack) + **React 19** + **TypeScript** + **Tailwind v4**.
-- Talks to `ledger-api` (NestJS) — base URL in `API_URL` (server-side only env, in `.env.local`).
+Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · **Tailwind v4**. Talks only to the Next server, which proxies to `ledger-api`. Run web on **:3001** (API owns :3000): `npx next dev -p 3001`. `API_URL` (server-only env) in `.env.local`.
 
-## Auth — BFF (backend-for-frontend) with httpOnly cookie
-The JWT is **never exposed to browser JS**. Flow:
-1. Browser posts credentials to a Next **Route Handler** (`/api/auth/{login,register,logout}`).
-2. The handler calls `ledger-api`, and on success sets the JWT in an **httpOnly, SameSite=lax** cookie (`access_token`), `Secure` in production. Returns only the safe user object.
-3. Server Components call the API via `apiFetch()` (`src/lib/api.ts`), which reads the cookie and attaches `Authorization: Bearer`.
-4. **Route protection is server-side, no middleware:** the `(protected)/layout.tsx` calls `getCurrentUser()`; if it's null it `redirect('/login')`. Immune to the middleware→proxy rename.
+## Architecture
+- **Auth = BFF + httpOnly cookie.** Browser → Next route handler `/api/auth/{login,register,logout}` → `ledger-api`; on success the JWT is stored in an **httpOnly** cookie (`access_token`, SameSite=lax, Secure in prod). JS can't read it; no CORS.
+- **Data access, two paths:**
+  - **Server Components** → `src/lib/api.ts` (`apiFetch`, `getCurrentUser`) — reads cookie directly.
+  - **Client Components** → `src/lib/client.ts` (`api.get/post/put/patch/del`) → calls the **generic proxy** `src/app/api/proxy/[...path]/route.ts`, which forwards any method to `${API_URL}/<path>` with the cookie's Bearer token. So client screens do CRUD with the token never touching JS.
+- **Route protection** = server-side in `(protected)/layout.tsx`: `getCurrentUser()` → `redirect('/login')` if null. No middleware.
+- **Theming** = semantic CSS-var tokens in `globals.css` (see below), `.dark` class toggled on `<html>`, saved to localStorage; no-flash script in root layout `<body>`.
 
-Benefits: token unstealable by XSS; browser never hits the API directly, so **no CORS**.
+## Routing map (src/app/)
+**Public:** `/login`, `/register` (client forms → BFF); `/` redirects to `/dashboard`.
+**BFF routes:** `/api/auth/{login,register,logout}`, `/api/proxy/[...path]`.
+**(protected)/** (server-gated; header has Nav + email + ThemeToggle + Sign out):
+- `dashboard` — receivable/payable/net cards, overdue/draft badges, recent invoices (computed from invoices+bills)
+- `parties` (list + tabs) · `parties/new` · `parties/[id]` (edit) · `parties/[id]/statement` (net statement + Print)
+- `items` (list) · `items/new` · `items/[id]` (edit)
+- `inventory` (list + Adjust modal) · `inventory/[id]` (movement history)
+- `invoices` (list + status tabs) · `invoices/new` · `invoices/[id]` (detail: finalize/void/delete/record-payment/credit-note) · `invoices/[id]/edit` · `invoices/[id]/print` (A4)
+- `bills` (mirror of invoices) · `bills/new` · `bills/[id]` (+ pay-supplier/debit-note) · `bills/[id]/edit`
+- `payments` (list, direction) · `payments/new` (`?partyId=&direction=IN|OUT`) · `payments/[id]` (clear/bounce/void) · `payments/[id]/print` (receipt/voucher)
+- `notes/new` (`?kind=CREDIT|DEBIT&partyId=&invoiceId=|billId=`) · `notes/[id]` (finalize/void/delete)
+- `settings` — business profile form
 
-## Data access (two paths)
-- **Server Components** → `apiFetch()` / `getCurrentUser()` in `src/lib/api.ts` (reads cookie directly). Used by the auth gate.
-- **Client Components** → `api` in `src/lib/client.ts` (`api.get/post/patch/del`) which calls the **generic proxy** `src/app/api/proxy/[...path]/route.ts`. The proxy forwards any method to `${API_URL}/<path>` with the cookie's Bearer token attached. So client screens do CRUD without the token ever touching JS, and there's no CORS.
+## Components & lib
+- `src/components/ui.tsx` — `Button` (primary/secondary/danger), `Input`, `Textarea`, `Select`, `Field`, `Card`, `LinkButton`, `PageHeader`, `ErrorText`. **All use theme tokens.**
+- `src/components/dialog.tsx` — `Modal` shell + `DialogProvider`/`useDialog()` (`confirm`/`prompt`). **Replaces all native alert/prompt/confirm.** Mounted in `(protected)/layout.tsx`.
+- `src/components/documents.tsx` — `PrintBar` (window.print), `BusinessHeaderBlock`, `Sheet` (A4 doc shell) for print pages.
+- `src/lib/api.ts` — server-side fetch + `getCurrentUser`. `src/lib/client.ts` — client `api` + `ApiError`. `src/lib/auth.ts` — cookie name/options + `AuthUser`. `src/lib/format.ts` — `money`, `formatDate`, `STATUS_BADGE`. `src/lib/types.ts` — all shared types (money fields are **strings**).
+- `src/app/(protected)/{nav,theme-toggle,logout-button}.tsx`.
 
-## Key files
-- `src/lib/auth.ts` — cookie name + options + `AuthUser` type.
-- `src/lib/api.ts` — server-side `apiFetch()` + `getCurrentUser()`.
-- `src/lib/client.ts` — client-side `api` helper (→ `/api/proxy/*`). `ApiError` carries status + flattened validation message.
-- `src/lib/types.ts` — `Party`, `Item`, enums (money fields are strings — Prisma Decimal).
-- `src/components/ui.tsx` — shared `Button/Input/Select/Field/Card/PageHeader/LinkButton`.
-- `src/app/api/auth/*` — BFF auth route handlers; `src/app/api/proxy/[...path]` — generic authed proxy.
-- `src/app/(protected)/layout.tsx` — server-side auth gate + shell + `nav.tsx`.
-- `src/app/(protected)/parties` + `items` — list / `new` / `[id]` edit pages + shared `*-form.tsx`. List/edit pages are client components (`useParams` for the id). Archive = soft delete.
-- `src/app/(protected)/invoices/page.tsx` — placeholder (editor is next).
-- `src/app/page.tsx` — redirects to `/dashboard`.
+## Theming tokens (USE THESE, never bg-white / text-gray-*)
+Defined in `globals.css`, swap under `.dark` (navy): `bg-app` (page), `bg-surface` (cards/tables/header), `text-fg` (primary), `text-muted` (secondary), `border-line` / `ring-line`, `bg-hover` (hover/light chips), `bg-accent` + `text-white`/`text-accent-fg` + `hover:bg-accent-hover` (primary buttons / active nav). Colored status/type badges (green/red/amber/blue/purple-50) are intentionally literal. Print forces light (tokens reset in `@media print`; `.no-print` hides chrome).
 
-## Local development
-```bash
-cp .env.example .env.local       # API_URL=http://localhost:3000
-npm install
-npm run dev                       # default :3000 — but the API also uses :3000,
-                                  # so run the web on another port:
-npx next dev -p 3001              # http://localhost:3001
-```
-The `ledger-api` backend must be running (`docker compose up -d db` + `npm run start:dev` in that repo).
+## Conventions
+- List & detail/edit pages are **client components**; get the id via `useParams()`, fetch via `api`. Pages reading query params wrap in `<Suspense>` + `useSearchParams`.
+- Money values are strings from the API — wrap in `Number()`/`money()` for display; send numbers in payloads.
+- New interactive UI: use `useDialog()` for confirms/prompts and the `ui.tsx` primitives so theming + dialogs stay consistent.
 
-## Status / next
-- ✅ Auth UI: login, register, logout, server-gated dashboard.
-- ✅ Generic authed proxy + client `api` helper + shared UI kit + nav.
-- ✅ Parties management (list, type tabs, new/edit, archive). Items management (list, new/edit, archive).
-- ✅ **Invoices UI** — list (status tabs), invoice **editor** (`invoice-editor.tsx`: customer picker, dynamic line rows with item prefill, live totals; shared by `new` + `[id]/edit`), detail view (`[id]`) with finalize / void / delete / record-payment.
-- ✅ **Payments UI** — `payment-form.tsx` (customer, amount, method, reference, date, cleared/pending; per-invoice allocation auto oldest-first + editable, remaining tracker), payments list, payment detail `[id]` (clear/bounce/void). `new/page.tsx` reads `?partyId` via `useSearchParams` (wrapped in `<Suspense>`).
-- ✅ **Statement view** — `/parties/[id]/statement`: summary cards (invoiced/paid/pending/outstanding) + timeline with running balance. Entry points: Statement link on parties list, Record-payment on invoice detail + statement.
-- Full money loop verified end-to-end through the proxy (invoice → payment → PARTIAL/balance → statement).
-- ✅ **Bills / payables UI** — `/bills` list (status tabs), `bill-editor.tsx` (supplier picker, supplierRef, billDiscount; shared by `new` + `[id]/edit`), bill detail `[id]` (finalize/void/delete + "Pay supplier"). Payment form is **direction-aware** (prop `direction`; OUT → suppliers + bills, allocations use `billId`). `/payments/new?direction=OUT`. Payments list shows direction; payment detail/print say "Payment voucher" for OUT and link bills.
-- ✅ **Statement is net** — net balance banner (+ they owe you / − you owe them), receivable + payable cards, debit/credit/running-balance timeline (handles INVOICE/BILL/PAYMENT_IN/PAYMENT_OUT). Verified end-to-end.
-- ✅ **Business Profile** settings page (`/settings`) — GET/PUT `business-profile`; feeds documents.
-- ✅ **PDF / print** — native browser print-to-PDF (no headless browser). Print pages `/invoices/[id]/print` + `/payments/[id]/print` render A4 documents; statement page has a Print button. `src/components/documents.tsx` = `PrintBar` (window.print), `BusinessHeaderBlock`, `Sheet`. Print CSS in `globals.css` (`@page A4`, `.no-print`); app header + action bars carry `no-print`/`print:hidden`. Print pages are client components (data via api.get, populates in browser before user prints).
-- ⏭️ Next: credit notes UI, inventory, dashboard totals. Before deploy: lock down public `/auth/register`.
+## Status
+✅ Full UI for every backend feature, BFF proxy, navy dark theme + toggle (saved), in-app dialogs, A4 PDFs, dashboard. ⏭️ Deployment only (see backend CLAUDE.md).
