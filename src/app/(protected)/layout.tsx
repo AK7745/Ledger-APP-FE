@@ -15,7 +15,7 @@ export default async function ProtectedLayout({
   if (!user) redirect('/login');
 
   return (
-    <div className="flex min-h-full flex-col">
+    <div className="flex min-h-screen flex-col">
       <header className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-3 no-print">
         <div className="flex items-center gap-6">
           <span className="text-lg font-semibold text-gray-900">Ledger</span>
