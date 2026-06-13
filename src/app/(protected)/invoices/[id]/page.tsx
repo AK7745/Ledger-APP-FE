@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { api } from '@/lib/client';
-import type { Invoice } from '@/lib/types';
+import type { CreditDebitNote, Invoice } from '@/lib/types';
 import { money, formatDate, STATUS_BADGE } from '@/lib/format';
 import { Button, Card, LinkButton } from '@/components/ui';
 
@@ -11,11 +12,17 @@ export default function InvoiceDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [inv, setInv] = useState<Invoice | null>(null);
+  const [notes, setNotes] = useState<CreditDebitNote[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(() => {
-    api.get<Invoice>(`invoices/${id}`).then(setInv).catch((e) => setError(e.message));
+    api.get<Invoice>(`invoices/${id}`).then((i) => {
+      setInv(i);
+      api
+        .get<CreditDebitNote[]>(`notes?kind=CREDIT&partyId=${i.partyId}`)
+        .then((ns) => setNotes(ns.filter((n) => n.invoiceId === id)));
+    }).catch((e) => setError(e.message));
   }, [id]);
 
   useEffect(() => {
@@ -80,6 +87,11 @@ export default function InvoiceDetailPage() {
           {isDraft && <Button onClick={remove} disabled={busy} variant="danger">Delete</Button>}
           {canVoid && Number(inv.balance) > 0 && (
             <LinkButton href={`/payments/new?partyId=${inv.partyId}`}>Record payment</LinkButton>
+          )}
+          {canVoid && (
+            <LinkButton href={`/notes/new?kind=CREDIT&partyId=${inv.partyId}&invoiceId=${id}`} variant="secondary">
+              Credit note
+            </LinkButton>
           )}
           {canVoid && <Button onClick={voidInvoice} disabled={busy} variant="danger">Void</Button>}
         </div>
@@ -153,6 +165,25 @@ export default function InvoiceDetailPage() {
           )}
         </div>
       </Card>
+
+      {notes.length > 0 && (
+        <Card>
+          <div className="mb-2 text-sm font-medium text-gray-700">Credit notes</div>
+          <table className="w-full text-sm">
+            <tbody>
+              {notes.map((n) => (
+                <tr key={n.id} className="border-t border-gray-100 first:border-0">
+                  <td className="py-2">
+                    <Link href={`/notes/${n.id}`} className="text-gray-700 underline">{n.number ?? '(draft)'}</Link>
+                  </td>
+                  <td className="py-2"><span className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[n.status]}`}>{n.status}</span></td>
+                  <td className="py-2 text-right tabular-nums text-gray-900">{money(n.grandTotal)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+      )}
 
       {inv.notes && (
         <Card>

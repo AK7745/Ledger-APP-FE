@@ -27,7 +27,49 @@ export interface Item {
   defaultSalePrice: string; // Decimal serialized as string
   defaultTaxRate: string;
   trackInventory: boolean;
+  stockOnHand: string;
   archived: boolean;
+}
+
+export interface StockMovement {
+  id: string;
+  itemId: string;
+  qty: string;
+  reason: string;
+  refType: string | null;
+  note: string | null;
+  createdAt: string;
+}
+
+export type NoteKind = 'CREDIT' | 'DEBIT';
+
+export interface NoteLine {
+  id?: string;
+  itemId?: string | null;
+  description: string;
+  qty: string;
+  unitPrice: string;
+  discount: string;
+  lineTotal: string;
+  position: number;
+}
+
+export interface CreditDebitNote {
+  id: string;
+  number: string | null;
+  kind: NoteKind;
+  status: InvoiceStatus;
+  partyId: string;
+  party?: { id: string; name: string };
+  invoiceId: string | null;
+  billId: string | null;
+  issueDate: string;
+  reason: string | null;
+  notes: string | null;
+  subtotal: string;
+  grandTotal: string;
+  voidReason: string | null;
+  lines: NoteLine[];
 }
 
 export interface InvoiceLine {

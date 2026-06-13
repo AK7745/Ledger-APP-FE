@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { api } from '@/lib/client';
-import type { Bill } from '@/lib/types';
+import type { Bill, CreditDebitNote } from '@/lib/types';
 import { money, formatDate, STATUS_BADGE } from '@/lib/format';
 import { Button, Card, LinkButton } from '@/components/ui';
 
@@ -11,11 +12,17 @@ export default function BillDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [b, setB] = useState<Bill | null>(null);
+  const [notes, setNotes] = useState<CreditDebitNote[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(() => {
-    api.get<Bill>(`bills/${id}`).then(setB).catch((e) => setError(e.message));
+    api.get<Bill>(`bills/${id}`).then((bill) => {
+      setB(bill);
+      api
+        .get<CreditDebitNote[]>(`notes?kind=DEBIT&partyId=${bill.partyId}`)
+        .then((ns) => setNotes(ns.filter((n) => n.billId === id)));
+    }).catch((e) => setError(e.message));
   }, [id]);
   useEffect(() => load(), [load]);
 
@@ -60,6 +67,11 @@ export default function BillDetailPage() {
           {isDraft && <Button onClick={remove} disabled={busy} variant="danger">Delete</Button>}
           {canVoid && Number(b.balance) > 0 && (
             <LinkButton href={`/payments/new?partyId=${b.partyId}&direction=OUT`}>Pay supplier</LinkButton>
+          )}
+          {canVoid && (
+            <LinkButton href={`/notes/new?kind=DEBIT&partyId=${b.partyId}&billId=${id}`} variant="secondary">
+              Debit note
+            </LinkButton>
           )}
           {canVoid && <Button onClick={voidBill} disabled={busy} variant="danger">Void</Button>}
         </div>
@@ -112,6 +124,23 @@ export default function BillDetailPage() {
           )}
         </div>
       </Card>
+
+      {notes.length > 0 && (
+        <Card>
+          <div className="mb-2 text-sm font-medium text-gray-700">Debit notes</div>
+          <table className="w-full text-sm">
+            <tbody>
+              {notes.map((n) => (
+                <tr key={n.id} className="border-t border-gray-100 first:border-0">
+                  <td className="py-2"><Link href={`/notes/${n.id}`} className="text-gray-700 underline">{n.number ?? '(draft)'}</Link></td>
+                  <td className="py-2"><span className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[n.status]}`}>{n.status}</span></td>
+                  <td className="py-2 text-right tabular-nums text-gray-900">{money(n.grandTotal)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+      )}
 
       {b.notes && (
         <Card><div className="text-sm text-gray-500">Notes</div><p className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">{b.notes}</p></Card>
