@@ -42,6 +42,20 @@ export interface InvoiceLine {
   position: number;
 }
 
+export interface BusinessProfile {
+  id: string;
+  businessName: string;
+  address?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  logoUrl?: string | null;
+  taxNumber?: string | null;
+  bankDetails?: string | null;
+  invoiceFooter?: string | null;
+  defaultCurrency: string;
+  invoicePrefix: string;
+}
+
 export type PaymentStatus = 'PENDING' | 'CLEARED' | 'BOUNCED' | 'VOID';
 
 export interface PaymentAllocation {

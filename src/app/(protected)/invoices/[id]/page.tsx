@@ -74,6 +74,7 @@ export default function InvoiceDetailPage() {
           </span>
         </div>
         <div className="flex gap-2">
+          {!isDraft && <LinkButton href={`/invoices/${id}/print`} variant="secondary">Print / PDF</LinkButton>}
           {isDraft && <LinkButton href={`/invoices/${id}/edit`} variant="secondary">Edit</LinkButton>}
           {isDraft && <Button onClick={finalize} disabled={busy}>Finalize</Button>}
           {isDraft && <Button onClick={remove} disabled={busy} variant="danger">Delete</Button>}

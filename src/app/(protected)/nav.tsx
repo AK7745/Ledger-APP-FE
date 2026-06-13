@@ -9,6 +9,7 @@ const links = [
   { href: '/items', label: 'Items' },
   { href: '/invoices', label: 'Invoices' },
   { href: '/payments', label: 'Payments' },
+  { href: '/settings', label: 'Settings' },
 ];
 
 export default function Nav() {

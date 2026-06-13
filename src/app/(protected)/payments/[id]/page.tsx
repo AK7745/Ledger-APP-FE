@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { api } from '@/lib/client';
 import type { Payment } from '@/lib/types';
 import { money, formatDate, STATUS_BADGE } from '@/lib/format';
-import { Button, Card } from '@/components/ui';
+import { Button, Card, LinkButton } from '@/components/ui';
 
 export default function PaymentDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -43,6 +43,7 @@ export default function PaymentDetailPage() {
           <span className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[p.status]}`}>{p.status}</span>
         </div>
         <div className="flex gap-2">
+          <LinkButton href={`/payments/${id}/print`} variant="secondary">Print receipt</LinkButton>
           {p.status === 'PENDING' && <Button onClick={() => act(() => api.post(`payments/${id}/clear`))} disabled={busy}>Mark cleared</Button>}
           {(p.status === 'PENDING' || p.status === 'CLEARED') && (
             <Button variant="danger" disabled={busy}

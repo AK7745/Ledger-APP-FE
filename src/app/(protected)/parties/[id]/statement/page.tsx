@@ -32,7 +32,17 @@ export default function StatementPage() {
     <div className="space-y-4">
       <PageHeader
         title={`Statement — ${s.party.name}`}
-        action={<LinkButton href={`/payments/new?partyId=${id}`}>Record payment</LinkButton>}
+        action={
+          <div className="flex gap-2 no-print">
+            <button
+              onClick={() => window.print()}
+              className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+            >
+              Print / PDF
+            </button>
+            <LinkButton href={`/payments/new?partyId=${id}`}>Record payment</LinkButton>
+          </div>
+        }
       />
 
       <div className="grid grid-cols-4 gap-4">

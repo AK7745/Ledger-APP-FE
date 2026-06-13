@@ -16,7 +16,7 @@ export default async function ProtectedLayout({
 
   return (
     <div className="flex min-h-full flex-col">
-      <header className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-3">
+      <header className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-3 no-print">
         <div className="flex items-center gap-6">
           <span className="text-lg font-semibold text-gray-900">Ledger</span>
           <Nav />
@@ -26,8 +26,8 @@ export default async function ProtectedLayout({
           <LogoutButton />
         </div>
       </header>
-      <main className="flex-1 bg-gray-50 p-6">
-        <div className="mx-auto max-w-5xl">{children}</div>
+      <main className="flex-1 bg-gray-50 p-6 print:bg-white print:p-0">
+        <div className="mx-auto max-w-5xl print:max-w-none">{children}</div>
       </main>
     </div>
   );
