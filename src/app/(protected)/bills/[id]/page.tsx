@@ -81,6 +81,7 @@ export default function BillDetailPage() {
           <span className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[b.status]}`}>{b.status}</span>
         </div>
         <div className="flex gap-2">
+          {!isDraft && <LinkButton href={`/bills/${id}/print`} variant="secondary">Print / PDF</LinkButton>}
           {isDraft && <LinkButton href={`/bills/${id}/edit`} variant="secondary">Edit</LinkButton>}
           {isDraft && <Button onClick={finalize} disabled={busy}>Finalize</Button>}
           {isDraft && <Button onClick={remove} disabled={busy} variant="danger">Delete</Button>}
