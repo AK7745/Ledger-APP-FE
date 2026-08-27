@@ -48,6 +48,31 @@ body {
   height: 100%;
 }
 
+/* Native <select> popups are painted by the browser, and the option list does
+   not reliably follow `color-scheme` (notably on Linux/GTK). Because the select
+   carries `text-fg`, the options inherit the dark theme's near-white text while
+   the popup stays white — leaving every unselected option invisible. Paint both
+   explicitly so the list is readable in either theme. */
+select {
+  background-color: var(--surface);
+  color: var(--fg);
+}
+
+option {
+  background-color: var(--surface);
+  color: var(--fg);
+}
+
+/* The placeholder-ish first option in filter selects reads as secondary. */
+option:disabled {
+  color: var(--muted);
+}
+
+/* Only meaningful on paper — see the print block below. */
+.doc-running-header {
+  display: none;
+}
+
 body {
   background: var(--app);
   color: var(--fg);
@@ -62,6 +87,11 @@ body {
   }
   :root,
   .dark {
+    /* `.dark` sets color-scheme: dark, which makes the browser paint the page
+       CANVAS dark. Resetting the tokens alone is not enough: with a
+       transparent <html> the dark canvas still prints as black bands around
+       the body whenever "Background graphics" is ticked. */
+    color-scheme: light;
     --app: #ffffff;
     --surface: #ffffff;
     --fg: #111827;
@@ -69,10 +99,32 @@ body {
     --line: #e5e7eb;
     --hover: #f3f4f6;
   }
+  html,
   body {
     background: #fff;
   }
   .no-print {
     display: none !important;
+  }
+
+  /* Branded documents manage their own horizontal padding, and page 1 is
+     full-bleed at the top so the navy rule reaches the paper edge — hence 0
+     top/side margins. Clearance above the repeated table header on
+     continuation pages comes from a spacer row inside <thead>, NOT from here:
+     the print dialog's "Margins" setting overrides @page margins, so anything
+     that depends on them silently disappears when a user picks None. */
+  @page brand-doc {
+    size: A4;
+    margin: 0 0 12mm;
+  }
+  .brand-doc {
+    page: brand-doc;
+  }
+
+  /* Running header: a position:fixed element repeats on EVERY printed page in
+     Chrome, page 1 included. Page 1's letterhead is painted opaque above it
+     (see `doc-letterhead`) so the marker only shows on continuation pages. */
+  .doc-running-header {
+    display: block;
   }
 }

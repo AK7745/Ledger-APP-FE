@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { api } from '@/lib/client';
-import type { BusinessProfile, Invoice, Party } from '@/lib/types';
+import type { Bill, BusinessProfile, Party } from '@/lib/types';
 import { money } from '@/lib/format';
 import { BRAND, amountInWords, longDate, paymentTerms } from '@/lib/brand';
 import { useDocumentTitle } from '@/lib/use-document-title';
@@ -13,38 +13,41 @@ import {
   LABEL, MIN_ROWS, PAGE_TOP_GAP, PartyBlock, ROW, TH, TotalRow, cellStyle,
 } from '@/components/brand-doc';
 
-export default function InvoicePrintPage() {
+// A bill is a PURCHASE: the supplier's document, recorded on our side. So this
+// is our office copy of a payable, not something sent to a customer — hence the
+// "OFFICE COPY" tag and check/approve signatures rather than a customer receipt.
+export default function BillPrintPage() {
   const { id } = useParams<{ id: string }>();
-  const [inv, setInv] = useState<(Invoice & { party?: Party }) | null>(null);
+  const [bill, setBill] = useState<(Bill & { party?: Party }) | null>(null);
   const [profile, setProfile] = useState<BusinessProfile | null>(null);
 
   useEffect(() => {
-    api.get<Invoice & { party?: Party }>(`invoices/${id}`).then(setInv);
+    api.get<Bill & { party?: Party }>(`bills/${id}`).then(setBill);
     api.get<BusinessProfile | null>('business-profile').then(setProfile);
   }, [id]);
 
-  useDocumentTitle(inv ? (inv.number ?? 'Invoice-DRAFT') : null);
+  useDocumentTitle(bill ? (bill.number ?? 'Bill-DRAFT') : null);
 
-  if (!inv) return <p className="text-muted">Loading…</p>;
+  if (!bill) return <p className="text-muted">Loading…</p>;
 
-  const party = inv.party as Party | undefined;
+  const party = bill.party as Party | undefined;
   const currency = profile?.defaultCurrency ?? 'PKR';
-  const fillers = Math.max(0, MIN_ROWS - inv.lines.length);
-  // `subtotal` is already net of line discounts (lineTotal = qty*price - discount),
-  // so the row that bridges subtotal -> grand total is invoiceDiscount alone.
-  // `discountTotal` is a reporting figure (line + invoice) and would double-count.
-  const invoiceDiscount = Number(inv.invoiceDiscount ?? 0);
-  const cell = cellStyle(inv.lines.length);
-  const terms = paymentTerms(inv.issueDate, inv.dueDate);
+  const fillers = Math.max(0, MIN_ROWS - bill.lines.length);
+  // Same convention as invoices: subtotal is already net of line discounts, so
+  // billDiscount alone bridges subtotal -> grandTotal. discountTotal would
+  // double-count the line discounts.
+  const billDiscount = Number(bill.billDiscount ?? 0);
+  const cell = cellStyle(bill.lines.length);
+  const terms = paymentTerms(bill.issueDate, bill.dueDate);
 
   return (
     <div>
-      <PrintBar backHref={`/invoices/${id}`} />
+      <PrintBar backHref={`/bills/${id}`} />
 
-      <BrandDoc docRef={inv.number ?? 'DRAFT'} profile={profile}>
+      <BrandDoc docRef={bill.number ?? 'DRAFT'} profile={profile}>
         <DocTitle
-          title={inv.status === 'VOID' ? 'VOID INVOICE' : 'INVOICE'}
-          tag="ORIGINAL FOR RECIPIENT"
+          title={bill.status === 'VOID' ? 'VOID PURCHASE BILL' : 'PURCHASE BILL'}
+          tag="OFFICE COPY"
         />
 
         <div
@@ -55,12 +58,13 @@ export default function InvoicePrintPage() {
             gap: 32,
           }}
         >
-          <PartyBlock label="BILL TO" party={party} />
+          <PartyBlock label="SUPPLIER" party={party} />
           <DetailsGrid
             rows={[
-              ['Invoice No.', inv.number ?? 'DRAFT'],
-              ['Date', longDate(inv.issueDate)],
-              inv.dueDate ? ['Due date', longDate(inv.dueDate)] : null,
+              ['Bill No.', bill.number ?? 'DRAFT'],
+              bill.supplierRef ? ['Supplier ref.', bill.supplierRef] : null,
+              ['Date', longDate(bill.issueDate)],
+              bill.dueDate ? ['Due date', longDate(bill.dueDate)] : null,
               terms ? ['Terms', terms] : null,
             ]}
           />
@@ -80,7 +84,7 @@ export default function InvoicePrintPage() {
               </tr>
             </thead>
             <tbody>
-              {inv.lines.map((line, i) => (
+              {bill.lines.map((line, i) => (
                 <tr
                   key={line.id ?? i}
                   style={{
@@ -102,7 +106,7 @@ export default function InvoicePrintPage() {
                 </tr>
               ))}
               {Array.from({ length: fillers }, (_, k) => {
-                const i = inv.lines.length + k;
+                const i = bill.lines.length + k;
                 return (
                   <tr
                     key={`filler-${k}`}
@@ -136,47 +140,43 @@ export default function InvoicePrintPage() {
           }}
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {profile?.bankDetails && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                <div style={LABEL}>PAYMENT DETAILS</div>
-                <div style={{ fontSize: 10, lineHeight: 1.65, color: BRAND.body, whiteSpace: 'pre-wrap' }}>
-                  {profile.bankDetails}
-                </div>
-              </div>
-            )}
-            {(inv.notes || profile?.invoiceFooter) && (
+            {bill.notes && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                 <div style={LABEL}>NOTES</div>
                 <div style={{ fontSize: 10, lineHeight: 1.65, color: BRAND.body, whiteSpace: 'pre-wrap' }}>
-                  {[inv.notes, profile?.invoiceFooter].filter(Boolean).join('\n')}
+                  {bill.notes}
                 </div>
               </div>
             )}
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <TotalRow label="Subtotal" value={money(inv.subtotal)} />
-            {invoiceDiscount > 0 && (
-              <TotalRow label="Invoice discount" value={`- ${money(invoiceDiscount)}`} zebra />
+            <TotalRow label="Subtotal" value={money(bill.subtotal)} />
+            {billDiscount > 0 && (
+              <TotalRow label="Bill discount" value={`- ${money(billDiscount)}`} zebra />
             )}
-            {Number(inv.taxTotal ?? 0) > 0 && (
-              <TotalRow label="Sales tax" value={money(inv.taxTotal)} />
+            {Number(bill.taxTotal ?? 0) > 0 && (
+              <TotalRow label="Sales tax" value={money(bill.taxTotal)} />
             )}
-            <GrandTotalBar label="TOTAL DUE" value={`${currency} ${money(inv.grandTotal)}`} />
+            <GrandTotalBar label="TOTAL PAYABLE" value={`${currency} ${money(bill.grandTotal)}`} />
             <div style={{ padding: '7px 10px', fontSize: 9, color: BRAND.greyLight }}>
-              Amount in words: {amountInWords(inv.grandTotal, currency)}
+              Amount in words: {amountInWords(bill.grandTotal, currency)}
             </div>
-            {Number(inv.amountPaid) > 0 && (
+            {Number(bill.amountPaid) > 0 && (
               <>
-                <TotalRow label="Paid to date" value={money(inv.amountPaid)} />
-                <TotalRow label="Balance due" value={money(inv.balance)} zebra strong />
+                <TotalRow label="Paid to date" value={money(bill.amountPaid)} />
+                <TotalRow label="Balance payable" value={money(bill.balance)} zebra strong />
               </>
             )}
           </div>
         </div>
 
         <Filler />
-        <BrandFooter left="RECEIVED BY · NAME & DATE" right="FOR NEW DIAMOND CORPORATION" />
+        <BrandFooter
+          left="CHECKED BY · NAME & DATE"
+          right="APPROVED FOR PAYMENT"
+          note="PURCHASE RECORD · NEW DIAMOND CORPORATION"
+        />
       </BrandDoc>
     </div>
   );

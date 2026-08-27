@@ -6,6 +6,7 @@ import { api } from '@/lib/client';
 import type { Statement } from '@/lib/types';
 import { money, formatDate } from '@/lib/format';
 import { Card, LinkButton, PageHeader } from '@/components/ui';
+import { useDocumentTitle } from '@/lib/use-document-title';
 
 function Stat({ label, value, accent }: { label: string; value: string; accent?: string }) {
   return (
@@ -25,6 +26,8 @@ export default function StatementPage() {
     api.get<Statement>(`parties/${id}/statement`).then(setS).catch((e) => setError(e.message));
   }, [id]);
 
+  useDocumentTitle(s ? `Statement - ${s.party.name}` : null);
+
   if (error) return <p className="text-sm text-red-600">{error}</p>;
   if (!s) return <p className="text-muted">Loading…</p>;
 
@@ -38,7 +41,7 @@ export default function StatementPage() {
         title={`Statement — ${s.party.name}`}
         action={
           <div className="flex gap-2 no-print">
-            <button onClick={() => window.print()} className="rounded-md border border-line px-4 py-2 text-sm font-medium text-fg hover:bg-hover">Print / PDF</button>
+            <LinkButton href={`/parties/${id}/statement/print`} variant="secondary">Print / PDF</LinkButton>
             <LinkButton href={`/payments/new?partyId=${id}`}>Receive</LinkButton>
             <LinkButton href={`/payments/new?partyId=${id}&direction=OUT`}>Pay</LinkButton>
           </div>
