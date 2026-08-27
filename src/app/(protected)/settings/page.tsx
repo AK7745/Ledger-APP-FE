@@ -26,7 +26,16 @@ export default function SettingsPage() {
 
   useEffect(() => {
     api.get<BusinessProfile | null>('business-profile').then((p) => {
-      if (p) setForm({ ...EMPTY, ...Object.fromEntries(Object.entries(p).filter(([, v]) => v != null)) });
+      if (!p) return;
+      // Copy only the form's own fields. The GET also returns id/createdAt/
+      // updatedAt, and the PUT DTO rejects unknown properties outright
+      // (forbidNonWhitelisted -> 400), so they must never reach the payload.
+      const next = { ...EMPTY };
+      for (const key of Object.keys(EMPTY) as (keyof typeof EMPTY)[]) {
+        const value = p[key as keyof BusinessProfile];
+        if (value != null) next[key] = String(value);
+      }
+      setForm(next);
     });
   }, []);
 
