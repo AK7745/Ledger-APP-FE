@@ -14,6 +14,14 @@ export const PAGE_TOP_GAP = 30;
 // rather than a table floating in white space.
 export const MIN_ROWS = 8;
 
+// Company stamp, applied over the "FOR NEW DIAMOND CORPORATION" signature line
+// when the user prints with the stamp. Tune SIZE/RIGHT/BOTTOM here — it is
+// absolutely positioned, so none of these values affect pagination.
+export const STAMP_SRC = '/ndc-stamp.png';
+const STAMP_SIZE = 78;
+const STAMP_RIGHT = 2;
+const STAMP_BOTTOM = 20; // bottom edge lands on the rule; grows upward
+
 export const LABEL: React.CSSProperties = {
   fontSize: 9,
   letterSpacing: '0.16em',
@@ -292,11 +300,35 @@ export function GrandTotalBar({ label, value }: { label: string; value: string }
   );
 }
 
-function SignatureLine({ caption }: { caption: string }) {
+function SignatureLine({ caption, stamp = false }: { caption: string; stamp?: boolean }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, position: 'relative' }}>
       {/* Blank area above the rule — this document gets signed by hand. */}
       <div style={{ height: 42 }} />
+      {stamp && (
+        /* Absolutely positioned on purpose: a stamped document must paginate
+           identically to an unstamped one, and vertical space anywhere in this
+           footer costs line capacity on page 1.
+           An <img>, never a CSS background-image — Chrome drops background
+           images when "Background graphics" is unticked, but always prints
+           inline images. */
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={STAMP_SRC}
+          alt=""
+          aria-hidden
+          style={{
+            position: 'absolute',
+            right: STAMP_RIGHT,
+            bottom: STAMP_BOTTOM,
+            width: STAMP_SIZE,
+            height: STAMP_SIZE,
+            objectFit: 'contain',
+            opacity: 0.92,
+            pointerEvents: 'none',
+          }}
+        />
+      )}
       <div style={{ height: 1, background: BRAND.navy }} />
       <div style={{ fontSize: 9, letterSpacing: '0.12em', color: BRAND.greyLight }}>
         {caption}
@@ -309,10 +341,13 @@ export function BrandFooter({
   left,
   right,
   note = 'THANK YOU FOR YOUR BUSINESS',
+  stamp = false,
 }: {
   left?: string;
   right?: string;
   note?: string;
+  /** Stamp the right-hand signature line (the "FOR NEW DIAMOND CORPORATION" one). */
+  stamp?: boolean;
 }) {
   return (
     <div
@@ -328,7 +363,7 @@ export function BrandFooter({
       {(left || right) && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 60 }}>
           {left ? <SignatureLine caption={left} /> : <div />}
-          {right ? <SignatureLine caption={right} /> : <div />}
+          {right ? <SignatureLine caption={right} stamp={stamp} /> : <div />}
         </div>
       )}
       <div

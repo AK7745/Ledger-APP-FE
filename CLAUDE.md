@@ -61,6 +61,14 @@ All four print routes share `src/components/brand-doc.tsx` (`BrandDoc`, `DocTitl
 | `payments/[id]/print` | RECEIPT (IN) / PAYMENT VOUCHER (OUT) | direction-dependent |
 | `parties/[id]/statement/print` | STATEMENT OF ACCOUNT | ORIGINAL FOR RECIPIENT |
 
+### Company stamp (opt-in per print)
+`PrintBar` becomes a **split button** whenever the page passes `onStampChange`: the main half prints as-is, the `▾` half opens a menu with *Print with stamp* / *Print without stamp*. The page holds `const [stamp, setStamp] = useState(false)` and forwards it to `BrandFooter stamp={stamp}`, which stamps the **right-hand** signature line — the `FOR NEW DIAMOND CORPORATION` one.
+- Wired on **invoice, receipt/voucher and statement**. Deliberately **not** on the purchase bill: it is an OFFICE COPY whose right-hand line is `APPROVED FOR PAYMENT`, an internal approval that must not carry the company stamp.
+- **`flushSync` is required** before `window.print()`. The print dialog snapshots the DOM synchronously, so a plain `setState` would still be pending and the stamp would appear only on the *next* print.
+- The stamp is **`position: absolute`**, so a stamped document paginates identically to an unstamped one. Anything that added flow height here would cost line capacity on page 1. Tune `STAMP_SIZE`/`STAMP_RIGHT`/`STAMP_BOTTOM` in `brand-doc.tsx`.
+- It is an **`<img>`, never a CSS `background-image`** — Chrome omits background images when the print dialog's "Background graphics" is unticked, but always prints inline images.
+- `public/ndc-stamp.png` is derived from the brand kit's `carton-stamp.png`, which is **fully opaque** (white paper, alpha 255 everywhere). The shipped copy re-inks it to `BRAND.navy` with alpha taken from ink darkness and crops to the mark, so it overlays the signature rule instead of painting a white square over it. Regenerate the same way if the source art changes.
+
 ⚠️ **JSX decodes HTML entities in attribute *string literals* but not inside JS expressions.** `left="A &amp; B"` renders `&`; `left={cond ? 'A &amp; B' : ...}` renders the literal `&amp;`. Use a plain `&`.
 
 `/invoices/[id]/print` renders the **New Diamond branded invoice** (built from `New Diamond Invoice.dc.html`): full-bleed navy rule, vector logo, navy table header with zebra rows padded to `MIN_ROWS = 8`, navy TOTAL DUE bar, amount-in-words, dual signature block.

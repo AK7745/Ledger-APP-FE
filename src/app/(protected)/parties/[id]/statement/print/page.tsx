@@ -23,6 +23,8 @@ const TYPE_LABEL: Record<string, string> = {
 export default function StatementPrintPage() {
   const { id } = useParams<{ id: string }>();
   const [s, setS] = useState<Statement | null>(null);
+  // Print-with-stamp is a per-print choice, not a saved preference.
+  const [stamp, setStamp] = useState(false);
   const [profile, setProfile] = useState<BusinessProfile | null>(null);
 
   useEffect(() => {
@@ -43,7 +45,7 @@ export default function StatementPrintPage() {
 
   return (
     <div>
-      <PrintBar backHref={`/parties/${id}/statement`} />
+      <PrintBar backHref={`/parties/${id}/statement`} onStampChange={setStamp} />
 
       <BrandDoc docRef={`STATEMENT · ${s.party.name}`} profile={profile}>
         <DocTitle title="STATEMENT OF ACCOUNT" tag="ORIGINAL FOR RECIPIENT" />
@@ -169,7 +171,7 @@ export default function StatementPrintPage() {
         </div>
 
         <Filler />
-        <BrandFooter right="FOR NEW DIAMOND CORPORATION" note="THANK YOU FOR YOUR BUSINESS" />
+        <BrandFooter stamp={stamp} right="FOR NEW DIAMOND CORPORATION" note="THANK YOU FOR YOUR BUSINESS" />
       </BrandDoc>
     </div>
   );

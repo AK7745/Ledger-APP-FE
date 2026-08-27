@@ -16,6 +16,8 @@ import {
 export default function InvoicePrintPage() {
   const { id } = useParams<{ id: string }>();
   const [inv, setInv] = useState<(Invoice & { party?: Party }) | null>(null);
+  // Print-with-stamp is a per-print choice, not a saved preference.
+  const [stamp, setStamp] = useState(false);
   const [profile, setProfile] = useState<BusinessProfile | null>(null);
 
   useEffect(() => {
@@ -39,7 +41,7 @@ export default function InvoicePrintPage() {
 
   return (
     <div>
-      <PrintBar backHref={`/invoices/${id}`} />
+      <PrintBar backHref={`/invoices/${id}`} onStampChange={setStamp} />
 
       <BrandDoc docRef={inv.number ?? 'DRAFT'} profile={profile}>
         <DocTitle
@@ -176,7 +178,7 @@ export default function InvoicePrintPage() {
         </div>
 
         <Filler />
-        <BrandFooter left="RECEIVED BY · NAME & DATE" right="FOR NEW DIAMOND CORPORATION" />
+        <BrandFooter stamp={stamp} left="RECEIVED BY · NAME & DATE" right="FOR NEW DIAMOND CORPORATION" />
       </BrandDoc>
     </div>
   );

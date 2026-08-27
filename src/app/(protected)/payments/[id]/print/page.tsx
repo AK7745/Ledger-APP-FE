@@ -16,6 +16,8 @@ import {
 export default function PaymentPrintPage() {
   const { id } = useParams<{ id: string }>();
   const [p, setP] = useState<Payment | null>(null);
+  // Print-with-stamp is a per-print choice, not a saved preference.
+  const [stamp, setStamp] = useState(false);
   const [profile, setProfile] = useState<BusinessProfile | null>(null);
   const [party, setParty] = useState<Party | null>(null);
   // Allocations carry only invoiceId/billId, so the referenced documents are
@@ -58,7 +60,7 @@ export default function PaymentPrintPage() {
 
   return (
     <div>
-      <PrintBar backHref={`/payments/${id}`} />
+      <PrintBar backHref={`/payments/${id}`} onStampChange={setStamp} />
 
       <BrandDoc docRef={p.number ?? 'DRAFT'} profile={profile}>
         <DocTitle
@@ -169,6 +171,7 @@ export default function PaymentPrintPage() {
 
         <Filler />
         <BrandFooter
+          stamp={stamp}
           left="RECEIVED BY · NAME & DATE"
           right="FOR NEW DIAMOND CORPORATION"
           note={isOut ? 'PAYMENT RECORD · NEW DIAMOND CORPORATION' : 'THANK YOU FOR YOUR BUSINESS'}
