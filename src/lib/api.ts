@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { cookies } from 'next/headers';
 import { TOKEN_COOKIE, type AuthUser } from './auth';
 
@@ -16,9 +17,16 @@ export async function apiFetch(path: string, init: RequestInit = {}) {
   return fetch(`${API_URL}${path}`, { ...init, headers, cache: 'no-store' });
 }
 
-/** Returns the logged-in user, or null if the token is missing/invalid. */
-export async function getCurrentUser(): Promise<AuthUser | null> {
+/**
+ * Returns the logged-in user with their CURRENT access (roles, isOwner,
+ * permissions), or null if the token is missing/invalid.
+ *
+ * Wrapped in React `cache` so the protected layout and every nested access
+ * gate share ONE /auth/me call per request. The cache lives for a single
+ * server request only, so permission changes still show on the next request.
+ */
+export const getCurrentUser = cache(async (): Promise<AuthUser | null> => {
   const res = await apiFetch('/auth/me');
   if (!res.ok) return null;
   return (await res.json()) as AuthUser;
-}
+});

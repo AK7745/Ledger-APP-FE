@@ -20,6 +20,13 @@ Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · **Tailwind v4**.
   - **Server Components** → `src/lib/api.ts` (`apiFetch`, `getCurrentUser`) — reads cookie directly.
   - **Client Components** → `src/lib/client.ts` (`api.get/post/put/patch/del`) → calls the **generic proxy** `src/app/api/proxy/[...path]/route.ts`, which forwards any method to `${API_URL}/<path>` with the cookie's Bearer token. So client screens do CRUD with the token never touching JS.
 - **Route protection** = server-side in `(protected)/layout.tsx`: `getCurrentUser()` → `redirect('/login')` if null. No middleware.
+- **Permissions (RBAC)** — design: `../ledger-api/docs/RBAC.md` §10, progress: `../ledger-api/docs/RBAC-PROGRESS.md`. **The API enforces every permission; the UI only decides what to show.**
+  - `src/lib/permissions.ts` — the 33 permission keys (**must equal the API catalog**; adding one there means adding it here), `Rule` (`'key' | {all:[…]} | {any:[…]}`), `can()`, `allows()`. Pure — usable on server and client.
+  - `/auth/me` returns `roles[]`, `isOwner`, `permissions[]` (`AuthUser` in `src/lib/auth.ts`). `getCurrentUser()` is wrapped in React **`cache`**, so the protected layout and every nested gate share **one** `/auth/me` per request (never cache it longer — access changes must show on the next request).
+  - **Server gate:** `<RequireAccess rule=…>` (`src/lib/access.tsx`) in a segment's `layout.tsx` renders `<NoAccess>` (names the missing permission) instead of the page. Layouts don't re-render while navigating *within* them, so every segment with a different rule needs its own layout (`invoices/` view, `invoices/new/` manage, …).
+  - **Client checks:** `AccessProvider` (mounted in the protected layout with the server-fetched access — no extra request, no flicker) → `useCan()` (`can('invoices.void')`, `can.rule({any:[…]})`) or `<Can rule=…>`.
+  - **403s:** `ApiError` carries `permission`/`anyOf`, and its message reads "You don't have permission to do this (needs invoices.void)." Admin guardrail 403s pass their own message through.
+  - ⚠️ We do **not** use Next's `forbidden()` / `forbidden.tsx`: it is experimental and needs `experimental.authInterrupts` in Next 16.2.
 - **Theming** = semantic CSS-var tokens in `globals.css` (see below), `.dark` class toggled on `<html>`, saved to localStorage; no-flash script in root layout `<body>`.
 
 ## Routing map (src/app/)
@@ -139,6 +146,9 @@ A quotation is a **pre-ledger** document — it owes nothing, moves no stock and
 - List & detail/edit pages are **client components**; get the id via `useParams()`, fetch via `api`. Pages reading query params wrap in `<Suspense>` + `useSearchParams`.
 - Money values are strings from the API — wrap in `Number()`/`money()` for display; send numbers in payloads.
 - New interactive UI: use `useDialog()` for confirms/prompts and the `ui.tsx` primitives so theming + dialogs stay consistent.
+
+## Testing RBAC in the browser
+Run against the **disposable** test stack only: API on :3200 (`ledger_rbac_test`), web via `next build && API_URL=http://localhost:3200 npx next start -p 3201`. Browser scripts use `playwright-core` (installed outside the project, driving `/usr/bin/google-chrome`) — see the progress tracker for the exact checks per chunk.
 
 ## Status
 ✅ Full UI for every backend feature, BFF proxy, navy dark theme + toggle (saved), in-app dialogs, A4 PDFs, dashboard. ⏭️ Deployment only (see backend CLAUDE.md).
