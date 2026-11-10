@@ -26,4 +26,19 @@ export const STATUS_BADGE: Record<string, string> = {
   PENDING: 'bg-amber-50 text-amber-700',
   CLEARED: 'bg-green-50 text-green-700',
   BOUNCED: 'bg-red-50 text-red-700',
+  // quotation statuses
+  SENT: 'bg-blue-50 text-blue-700',
+  ACCEPTED: 'bg-green-50 text-green-700',
+  DECLINED: 'bg-red-50 text-red-700',
+  EXPIRED: 'bg-amber-50 text-amber-700',
 };
+
+/**
+ * A quotation is only ever stored as SENT — nothing sweeps it into EXPIRED on a
+ * timer — so the UI derives lapsed-ness from the date, exactly as the API's
+ * `?expired` filter does.
+ */
+export function isLapsed(status: string, validUntil: string | null): boolean {
+  if (status !== 'SENT' || !validUntil) return false;
+  return new Date(validUntil).getTime() < Date.now();
+}
