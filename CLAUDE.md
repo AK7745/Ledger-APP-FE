@@ -30,6 +30,7 @@ Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · **Tailwind v4**.
 - `parties` (list + tabs) · `parties/new` · `parties/[id]` (edit) · `parties/[id]/statement` (net statement) · `parties/[id]/statement/print` (A4, branded)
 - `items` (list) · `items/new` · `items/[id]` (edit)
 - `inventory` (list + Adjust modal) · `inventory/[id]` (movement history)
+- `quotations` (list + status tabs + search/filters) · `quotations/new` · `quotations/[id]` (detail: issue/accept/decline/convert/void/delete) · `quotations/[id]/edit` · `quotations/[id]/print` (A4, branded)
 - `invoices` (list + status tabs + search/filters) · `invoices/new` · `invoices/[id]` (detail: finalize/void/delete/record-payment/credit-note) · `invoices/[id]/edit` · `invoices/[id]/print` (A4, branded)
 - `bills` (mirror of invoices) · `bills/new` · `bills/[id]` (+ pay-supplier/debit-note) · `bills/[id]/edit` · `bills/[id]/print` (A4, branded)
 - `payments` (list, direction) · `payments/new` (`?partyId=&direction=IN|OUT`) · `payments/[id]` (clear/bounce/void) · `payments/[id]/print` (receipt/voucher)
@@ -52,10 +53,11 @@ Defined in `globals.css`, swap under `.dark` (navy): `bg-app` (page), `bg-surfac
 > ⚠️ The print block must reset **`color-scheme: light`** and paint **`html`** white, not just `body`. `.dark` sets `color-scheme: dark`, which makes the browser paint the page *canvas* dark; with a transparent `<html>` that canvas printed as **black bands around every page** whenever the user ticked "Background graphics". Resetting the colour tokens alone does not fix it.
 
 ## Printed documents
-All four print routes share `src/components/brand-doc.tsx` (`BrandDoc`, `DocTitle`, `PartyBlock`, `DetailsGrid`, `HeadSpacer`, `TotalRow`, `GrandTotalBar`, `BrandFooter`, `Filler`, plus the `TH`/`TD`/`TD_DENSE`/`ROW`/`PAGE_TOP_GAP`/`MIN_ROWS` constants). Change page geometry **there**, not per document.
+All five print routes share `src/components/brand-doc.tsx` (`BrandDoc`, `DocTitle`, `PartyBlock`, `DetailsGrid`, `HeadSpacer`, `TotalRow`, `GrandTotalBar`, `BrandFooter`, `Filler`, plus the `TH`/`TD`/`TD_DENSE`/`ROW`/`PAGE_TOP_GAP`/`MIN_ROWS` constants). Change page geometry **there**, not per document.
 
 | Route | Document | Tag |
 |---|---|---|
+| `quotations/[id]/print` | QUOTATION (pre-ledger; Valid until, TOTAL not TOTAL DUE, `ACCEPTED BY` signature, pending-rate section) | ORIGINAL FOR RECIPIENT |
 | `invoices/[id]/print` | INVOICE | ORIGINAL FOR RECIPIENT |
 | `bills/[id]/print` | PURCHASE BILL (payable; supplier ref, TOTAL PAYABLE, check/approve signatures) | OFFICE COPY |
 | `payments/[id]/print` | RECEIPT (IN) / PAYMENT VOUCHER (OUT) | direction-dependent |
@@ -63,7 +65,7 @@ All four print routes share `src/components/brand-doc.tsx` (`BrandDoc`, `DocTitl
 
 ### Company stamp (opt-in per print)
 `PrintBar` becomes a **split button** whenever the page passes `onStampChange`: the main half prints as-is, the `▾` half opens a menu with *Print with stamp* / *Print without stamp*. The page holds `const [stamp, setStamp] = useState(false)` and forwards it to `BrandFooter stamp={stamp}`, which stamps the **right-hand** signature line — the `FOR NEW DIAMOND CORPORATION` one.
-- Wired on **invoice, receipt/voucher and statement**. Deliberately **not** on the purchase bill: it is an OFFICE COPY whose right-hand line is `APPROVED FOR PAYMENT`, an internal approval that must not carry the company stamp.
+- Wired on **quotation, invoice, receipt/voucher and statement**. Deliberately **not** on the purchase bill: it is an OFFICE COPY whose right-hand line is `APPROVED FOR PAYMENT`, an internal approval that must not carry the company stamp.
 - **`flushSync` is required** before `window.print()`. The print dialog snapshots the DOM synchronously, so a plain `setState` would still be pending and the stamp would appear only on the *next* print.
 - The stamp is **`position: absolute`**, so a stamped document paginates identically to an unstamped one. Anything that added flow height here would cost line capacity on page 1. Tune `STAMP_SIZE`/`STAMP_RIGHT`/`STAMP_BOTTOM` in `brand-doc.tsx`.
 - It is an **`<img>`, never a CSS `background-image`** — Chrome omits background images when the print dialog's "Background graphics" is unticked, but always prints inline images.
@@ -88,8 +90,24 @@ All four print routes share `src/components/brand-doc.tsx` (`BrandDoc`, `DocTitl
 - Vertical rhythm is tight (letterhead `34px` top pad, table container `2px` + 26px thead spacer, totals `18px`, dense rows `4.5px`). Adding vertical space anywhere costs line capacity — measure with a real render, not arithmetic; a height model disagreed with Chrome by two rows.
 - Chrome's own header/footer (date, page title, source URL) is a print-dialog setting, not CSS — it must be unticked manually or the localhost URL and invoice id print on the document.
 
+### Quotation sheet — the pending-rate section
+The quotation adds a **second table** below the totals for lines quoted without a rate, then the usual signature block. It carries **no Rate/Discount/Amount columns** — blank money columns read as zeros, the opposite of what the block means — and a disclaimer that the items are not in the total. The totals column repeats that in brass: *"Excludes N items pending rate — see below."*
+- It takes the shared **`PAGE_TOP_GAP`** like every other block that can *begin* a continuation page, and `breakInside: avoid` on its rows.
+- **`cellStyle` is keyed off the COMBINED line count** (`q.lines.length`), not the priced count. Keyed off priced alone, 9 priced + 12 pending would render at roomy padding and overflow.
+- **`MIN_ROWS` padding is suppressed whenever a pending block exists.** Padding exists so a lone short table does not float in white space; with a second table below it is just blank rows between real data, and it costs capacity on a sheet already carrying an extra table. Leaving it in cost a whole page: 3 priced + 3 pending printed on **two** pages.
+- **An all-pending quotation prints no `GrandTotalBar` and no amount-in-words** — a navy `TOTAL PKR 0.00` bar on a "rates to follow" quote reads as a quote for nothing. Its section label drops the "— NOT INCLUDED IN THE TOTAL" suffix too, since there is no total to be excluded from.
+
+**Capacity (measured by rendering this content in headless Chrome, not by arithmetic):**
+| Sheet | Page-1 capacity |
+|---|---|
+| priced lines only | **14** — monotonic (1-14 one page, 15+ two) |
+| with a 3-row pending block | **4 priced** (1-4 one page, 5+ two), monotonic |
+| all-pending, no priced table | 8+ comfortably |
+
+The pending block costs about **seven rows of chrome** (its gap + brass label + header + disclaimer) on top of one row per pending line — so it is arithmetic, not a CSS bug. Re-measure by rendering whenever the vertical rhythm changes; a height model disagreed with Chrome by two rows last time.
+
 ## List search & filters
-Six list pages (`invoices`, `bills`, `payments`, `parties`, `items`, `inventory`) share the same machinery:
+Seven list pages (`quotations`, `invoices`, `bills`, `payments`, `parties`, `items`, `inventory`) share the same machinery:
 - `src/lib/use-list-query.ts` — **filter state lives in the URL**, not component state, so back/forward works, a filtered view is shareable, and a refresh does not reset it. Uses `router.replace` so typing does not push a history entry per keystroke.
 - `src/lib/use-fetch-list.ts` — re-fetches when the path changes. Guards against **out-of-order responses** (a debounced search fires often; a slow earlier request must not overwrite a newer one) via a request-id check, and never calls setState synchronously in the effect body. Exposes `loading` (first load), `refreshing` (subsequent), and `reload()` for after a mutation.
 - `src/components/filters.tsx` — `FilterBar` renders a compact toolbar: a `SearchInput` (300ms debounce) plus a single **Filters** button opening an anchored popover that holds every other filter. Building blocks: `PanelField`, `FilterSelect` (`full` variant fills a panel row), `ToggleChip`, `DateRange`, `AmountRange`, `Pagination`.
@@ -104,6 +122,18 @@ Six list pages (`invoices`, `bills`, `payments`, `parties`, `items`, `inventory`
 ⚠️ Each page's `KEYS` list **must match the API's DTO** — the backend rejects unknown query params with a 400 rather than ignoring them.
 ⚠️ `ui.tsx`'s `inputCls` hardcodes `w-full` and `mt-1`. Tailwind resolves conflicting utilities by **stylesheet order, not class order**, so passing `className="w-auto"` does not work — size a wrapper `<div>` instead (that is why the filter controls are wrapped).
 ⚠️ These pages use `useSearchParams`, so each exports a thin default component wrapping the real one in `<Suspense>`.
+
+## Quotations
+A quotation is a **pre-ledger** document — it owes nothing, moves no stock and never reaches a statement (see the backend CLAUDE.md). The UI mirrors invoices with three differences worth knowing:
+- **Rate-pending lines.** A line can be ticked *"Rate not entered yet"*, which sends `ratePending: true` + `rateNote` and **omits `unitPrice`/`discount` entirely**. The API stores price/total as NULL and keeps the line out of every total. The editor, the detail page and the printed sheet all split the lines into **priced** and **pending rate**, because showing an unpriced line in the money table with blank columns reads as zeros. Both places state "Excludes N item(s) pending rate" under the total.
+- **Catalog price hint.** Picking an item fills the rate from `defaultSalePrice` (as invoices do) and then keeps showing `List <price>` under the input, marked `· changed` when you quote off-list. Informational only — the server still snapshots whatever you send.
+- **Lapsing is derived, never stored.** Nothing sweeps a quote into `EXPIRED`, so `isLapsed()` in `format.ts` computes it from `validUntil` the same way the API's `?expired` filter does. The badge always shows the real stored status with a muted "lapsed" hint beside it.
+- **CSV import** (`quotation-editor.tsx` + `src/lib/csv.ts` + `public/quotation-template.csv`). Upload → spinner over the lines area → rows appear in the normal line boxes for review → the ordinary *Create draft* button saves them. There is no separate preview screen: review happens where you would fix things anyway.
+  - `src/lib/csv.ts` is a hand-rolled RFC-4180 reader (BOM, CRLF, quoted commas, doubled quotes, blank rows; column order free, unknown columns ignored). It only **splits** text — every coercion, item match and rate decision is server-side, so the import obeys the same "server decides" rule as every other write. It also means **no multipart upload**, which matters: the generic `/api/proxy` forwards `req.text()` and is not safe for binary bodies.
+  - Rows the server marks `error` are **listed, not inserted** — a line with no usable qty or rate must not be smuggled into the table to be hunted down later. Rows with a `message` (e.g. an item name that matched nothing) are inserted with an amber note under the description.
+  - Importing replaces *blank* lines (the one the editor starts with) and appends after anything already typed.
+  - ⚠️ The sample CSV must import cleanly on a first run with an **empty catalog** — an early draft opened with a blank-rate row that depended on a catalog match, so the sample itself errored. Column rules live in the panel's help list, not in the file's cells, because cells become data.
+- `convert` navigates to the new **draft** invoice, so the count of dropped unpriced lines is stated in the confirm dialog *before* converting rather than reported afterwards.
 
 ## Conventions
 - List & detail/edit pages are **client components**; get the id via `useParams()`, fetch via `api`. Pages reading query params wrap in `<Suspense>` + `useSearchParams`.

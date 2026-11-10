@@ -199,3 +199,54 @@ export interface Invoice {
   voidReason: string | null;
   lines: InvoiceLine[];
 }
+
+export type QuotationStatus =
+  | 'DRAFT'
+  | 'SENT'
+  | 'ACCEPTED'
+  | 'DECLINED'
+  | 'EXPIRED'
+  | 'VOID';
+
+/**
+ * `unitPrice` and `lineTotal` are NULL for a "rate pending" line — one quoted
+ * without a price. Those lines print in their own section of the sheet and are
+ * excluded from every total.
+ */
+export interface QuotationLine {
+  id?: string;
+  itemId?: string | null;
+  description: string;
+  qty: string;
+  unitPrice: string | null;
+  discount: string;
+  taxRate: string;
+  lineTotal: string | null;
+  rateNote: string | null;
+  position: number;
+}
+
+export interface Quotation {
+  id: string;
+  number: string | null;
+  status: QuotationStatus;
+  partyId: string;
+  party?: { id: string; name: string };
+  issueDate: string;
+  validUntil: string | null;
+  subject: string | null;
+  notes: string | null;
+  subtotal: string;
+  discountTotal: string;
+  taxTotal: string;
+  quotationDiscount: string;
+  grandTotal: string;
+  sentAt: string | null;
+  acceptedAt: string | null;
+  declinedAt: string | null;
+  voidedAt: string | null;
+  voidReason: string | null;
+  convertedInvoiceId: string | null;
+  convertedAt: string | null;
+  lines: QuotationLine[];
+}
