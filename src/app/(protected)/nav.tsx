@@ -2,24 +2,31 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useCan } from '@/components/access-provider';
+import type { Rule } from '@/lib/permissions';
 
-const links = [
+// Each entry declares the rule that opens its module — the SAME rule its
+// segment layout enforces with <RequireAccess>, so a visible link never lands
+// on "No access". Dashboard has no rule (it composes what you can see).
+const links: { href: string; label: string; rule?: Rule }[] = [
   { href: '/dashboard', label: 'Dashboard' },
-  { href: '/parties', label: 'Parties' },
-  { href: '/items', label: 'Items' },
-  { href: '/inventory', label: 'Inventory' },
-  { href: '/quotations', label: 'Quotations' },
-  { href: '/invoices', label: 'Invoices' },
-  { href: '/bills', label: 'Bills' },
-  { href: '/payments', label: 'Payments' },
-  { href: '/settings', label: 'Settings' },
+  { href: '/parties', label: 'Parties', rule: 'parties.view' },
+  { href: '/items', label: 'Items', rule: 'items.view' },
+  { href: '/inventory', label: 'Inventory', rule: 'inventory.view' },
+  { href: '/quotations', label: 'Quotations', rule: 'quotations.view' },
+  { href: '/invoices', label: 'Invoices', rule: 'invoices.view' },
+  { href: '/bills', label: 'Bills', rule: 'bills.view' },
+  { href: '/payments', label: 'Payments', rule: { any: ['payments.in.view', 'payments.out.view'] } },
+  { href: '/settings', label: 'Settings', rule: 'settings.manage' },
 ];
 
 export default function Nav() {
   const pathname = usePathname();
+  const can = useCan();
+  const visible = links.filter((l) => !l.rule || can.rule(l.rule));
   return (
     <nav className="flex gap-1">
-      {links.map((l) => {
+      {visible.map((l) => {
         const active = pathname === l.href || pathname.startsWith(l.href + '/');
         return (
           <Link
